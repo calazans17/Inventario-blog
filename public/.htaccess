@@ -1,0 +1,7 @@
+# Hostinger (Apache/LiteSpeed) ignora o _headers; estes sao os mesmos cabecalhos.
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+ErrorDocument 404 /404.html

@@ -1,0 +1,7 @@
+---
+import { icons, gridToPath, ICON_SIZE } from "../lib/pixel.js";
+const { name, size = 18, class: className, label } = Astro.props;
+const grid = icons[name] ?? icons.mais;
+---
+
+<svg class:list={["pixel-icon", className]} width={size} height={size} viewBox={`0 0 ${ICON_SIZE} ${ICON_SIZE}`} shape-rendering="crispEdges" fill="currentColor" role={label ? "img" : undefined} aria-label={label} aria-hidden={label ? undefined : "true"}><path d={gridToPath(grid)} /></svg>

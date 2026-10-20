@@ -1,0 +1,20 @@
+---
+import Logo from "./Logo.astro";
+import PixelIcon from "./PixelIcon.astro";
+import { categories, categoryPath, url } from "../data/content.js";
+---
+
+<footer class="site-footer" id="sobre">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <Logo variant="dark" size="md" />
+      <p>Beleza, música, games, pokémon e achadinhos. Mais do que categorias: é o seu universo.</p>
+    </div>
+    <div class="footer-links">
+      <div><span class="eyebrow">Assuntos</span>{categories.map((category) => <a href={categoryPath(category)}><PixelIcon name={category.icon} size={14} />{category.name}</a>)}</div>
+      <div><span class="eyebrow">Somos</span><a href={url("/#ultimas")}>Últimas</a><a href={url("/busca/")}>Arquivo</a><a href="mailto:oi@somosinventario.com.br">Contato</a><a href={url("/#newsletter")}>Newsletter</a></div>
+      <div><span class="eyebrow">Em outros lugares</span><a href="https://instagram.com/" target="_blank" rel="noreferrer">Instagram ↗</a><a href="https://tiktok.com/" target="_blank" rel="noreferrer">TikTok ↗</a><a href="https://youtube.com/" target="_blank" rel="noreferrer">YouTube ↗</a></div>
+    </div>
+    <div class="footer-bottom"><span>© 2026 Somos Inventário</span><a href="#top">Voltar ao topo ↑</a></div>
+  </div>
+</footer>

@@ -1,0 +1,20 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ArticleCard from "../../components/ArticleCard.astro";
+import { articles, tagEntries, tagSlug, url } from "../../data/content.js";
+
+export function getStaticPaths() {
+  return tagEntries.map((tag) => ({ params: { slug: tag.slug }, props: { tag } }));
+}
+
+const { tag } = Astro.props;
+const entries = articles.filter((article) => article.tags.some((label) => tagSlug(label) === tag.slug));
+---
+
+<BaseLayout title={`#${tag.name} — Somos Inventário`} description={`Histórias sobre ${tag.name} no arquivo do Somos Inventário.`} noindex={entries.length < 2}>
+  <main id="main-content" class="archive-page container">
+    <nav class="breadcrumbs" aria-label="Você está em"><a href={url("/")}>Início</a><span aria-hidden="true">/</span><span>Tags</span></nav>
+    <header class="archive-heading"><span class="eyebrow">Palavras-chave &amp; conexões</span><h1><em>#</em>{tag.name}</h1><span class="archive-count">{entries.length} {entries.length === 1 ? "história" : "histórias"} no arquivo</span></header>
+    <div class="card-grid">{entries.map((article, index) => <ArticleCard article={article} index={index} />)}</div>
+  </main>
+</BaseLayout>

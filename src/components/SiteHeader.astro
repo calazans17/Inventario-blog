@@ -1,0 +1,38 @@
+---
+import Logo from "./Logo.astro";
+import PixelIcon from "./PixelIcon.astro";
+import { categories, categoryPath, url } from "../data/content.js";
+const { currentPath = "" } = Astro.props;
+---
+
+<div class="topline"><span>Beleza · Música · Games · Pokémon · Achadinhos</span><span class="topline-tagline">Mais do que categorias. É o seu universo.</span></div>
+<header class="site-header">
+  <div class="header-inner">
+    <Logo size="sm" />
+    <nav class="main-nav" id="main-nav" aria-label="Navegação principal">
+      {categories.map((category) => <a class:list={["nav-category", currentPath === categoryPath(category) && "is-active"]} href={categoryPath(category)} aria-current={currentPath === categoryPath(category) ? "page" : undefined}><PixelIcon name={category.icon} size={16} />{category.name}</a>)}
+    </nav>
+    <div class="header-actions">
+      <a class="search-trigger" href={url("/busca/")} aria-label="Buscar matérias"><span class="search-icon" aria-hidden="true"></span><span class="search-text">Buscar</span><kbd>Ctrl K</kbd></a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav" aria-label="Abrir menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+<script>
+  const menuButton = document.querySelector(".menu-toggle");
+  const navigation = document.querySelector(".main-nav");
+  menuButton?.addEventListener("click", () => {
+    const isOpen = menuButton.getAttribute("aria-expanded") === "true";
+    menuButton.setAttribute("aria-expanded", String(!isOpen));
+    menuButton.setAttribute("aria-label", isOpen ? "Abrir menu" : "Fechar menu");
+    navigation?.classList.toggle("is-open", !isOpen);
+  });
+  document.addEventListener("keydown", (event) => {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+      event.preventDefault();
+      const searchInput = document.querySelector("#archive-search-input");
+      if (searchInput instanceof HTMLInputElement) searchInput.focus();
+      else window.location.href = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/busca/`;
+    }
+  });
+</script>

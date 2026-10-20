@@ -1,0 +1,13 @@
+---
+// Logo da identidade: o "I" feito de ícones + wordmark "somos inventário".
+// variant "light" = marca vermelha e texto escuro; "dark" = tudo em creme (para fundo vermelho).
+import { url } from "../data/content.js";
+const { variant = "light", size = "md", tag = "a" } = Astro.props;
+const Tag = tag;
+const markSrc = url(variant === "dark" ? "/marca/creme.svg" : "/marca/vermelho.svg");
+---
+
+<Tag class:list={["logo", `logo--${variant}`, `logo--${size}`]} href={tag === "a" ? url("/") : undefined} aria-label={tag === "a" ? "Somos Inventário, início" : undefined}>
+  <img class="logo-mark" src={markSrc} alt="" width="97" height="130" />
+  <span class="logo-word" aria-hidden={tag === "a" ? "true" : undefined}><span class="logo-somos">somos</span><span class="logo-inventario">inventário</span></span>
+</Tag>

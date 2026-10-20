@@ -1,0 +1,86 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ArticleCard from "../components/ArticleCard.astro";
+import PixelIcon from "../components/PixelIcon.astro";
+import { articles, articlePath, categories, categoryFor, categoryPath, shortDate, url } from "../data/content.js";
+
+const lead = articles.find((article) => article.featured) ?? articles[0];
+const others = articles.filter((article) => article !== lead);
+const trending = others.filter((article) => article.trending).slice(0, 4);
+const guides = others.filter((article) => article.guide).slice(0, 3);
+const latest = others.filter((article) => !guides.includes(article)).slice(0, 6);
+const countFor = (category) => articles.filter((article) => article.category === category.slug).length;
+---
+
+<BaseLayout>
+  <main id="main-content">
+    {!lead && <section class="archive-page container"><p class="empty-state">O inventário está sendo montado. As primeiras histórias chegam em breve.</p></section>}
+    {lead && <section class="lead-layout container" aria-label="Destaques">
+      <div class="lead-main"><ArticleCard article={lead} variant="hero" headingLevel={1} /></div>
+      <aside class="lead-rail" aria-labelledby="rail-title">
+        <div class="rail-heading"><h2 id="rail-title" class="eyebrow">Em alta no inventário</h2><PixelIcon name="coracao" size={16} /></div>
+        <ol class="lead-list">
+          {trending.map((article, index) => (
+            <li><a class="lead-item" href={articlePath(article)}><span class="lead-item-index">{String(index + 1).padStart(2, "0")}</span><span class="lead-item-copy"><span class="category-label"><PixelIcon name={categoryFor(article).icon} size={13} />{categoryFor(article).name}</span><span class="lead-item-title">{article.title}</span><time datetime={article.date}>{shortDate(article.date)}</time></span></a></li>
+          ))}
+        </ol>
+      </aside>
+    </section>}
+
+    <section class="universe" aria-labelledby="universe-title">
+      <div class="container">
+        <div class="section-heading section-heading--center"><span class="eyebrow">Mais do que categorias</span><h2 id="universe-title">É o seu <em>universo</em>.</h2></div>
+        <ul class="universe-grid">
+          {categories.map((category) => (
+            <li><a class="universe-tile" href={categoryPath(category)}><PixelIcon name={category.icon} size={54} /><span class="universe-name">{category.name}</span><span class="universe-count">{String(countFor(category)).padStart(2, "0")} histórias</span></a></li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    {latest.length > 0 && <section class="content-section container" id="ultimas" aria-labelledby="latest-title">
+      <div class="section-heading"><div><span class="eyebrow">A conversa não para</span><h2 id="latest-title">Últimas <em>entradas</em></h2></div><a class="section-link" href={url("/busca/")}>Ver arquivo <span aria-hidden="true">→</span></a></div>
+      <div class="card-grid">{latest.map((article, index) => <ArticleCard article={article} index={index} />)}</div>
+    </section>}
+
+    {guides.length > 0 && <section class="guides-band" id="guias" aria-labelledby="guides-title">
+      <img class="guides-mark" src={url("/marca/creme.svg")} alt="" width="97" height="130" />
+      <div class="container">
+        <div class="section-heading"><div><span class="eyebrow">Pra salvar e voltar</span><h2 id="guides-title">Guias &amp; <em>achadinhos</em></h2></div><a class="section-link" href={url("/categoria/achadinhos/")}>Ver achadinhos <span aria-hidden="true">→</span></a></div>
+        <div class="card-grid">{guides.map((article, index) => <ArticleCard article={article} variant="guide" index={index} />)}</div>
+      </div>
+    </section>}
+
+    <section class="content-section container" id="assuntos" aria-labelledby="topics-title">
+      <div class="section-heading"><div><span class="eyebrow">Um pouco de cada coisa</span><h2 id="topics-title">Vai por <em>assunto</em></h2></div></div>
+      <div class="category-blocks">
+        {categories.map((category) => {
+          const categoryArticles = articles.filter((article) => article.category === category.slug).slice(0, 2);
+          return categoryArticles.length > 0 && (
+            <section class="category-row" aria-labelledby={`assunto-${category.slug}`}>
+              <div class="category-row-title"><PixelIcon name={category.icon} size={36} /><div><h3 id={`assunto-${category.slug}`}>{category.name}</h3><p>{category.description}</p><a class="section-link" href={categoryPath(category)}>Ver tudo <span aria-hidden="true">→</span></a></div></div>
+              <div class="category-row-cards">{categoryArticles.map((article, index) => <ArticleCard article={article} variant="compact" index={index} headingLevel={4} />)}</div>
+            </section>
+          );
+        })}
+      </div>
+    </section>
+
+    <section class="newsletter container" id="newsletter" aria-labelledby="newsletter-title">
+      <div class="newsletter-box">
+        <div class="newsletter-icons" aria-hidden="true">{categories.map((category) => <PixelIcon name={category.icon} size={26} />)}</div>
+        <div class="newsletter-copy"><span class="eyebrow">Carta do inventário · em breve</span><h2 id="newsletter-title">Uma seleção boa <em>vale um inbox</em>.</h2><p>As histórias que ficaram na cabeça, direto no seu e-mail.</p></div>
+        <form class="newsletter-form" id="newsletter-form"><label class="sr-only" for="newsletter-email">Seu e-mail</label><input id="newsletter-email" type="email" placeholder="seu melhor e-mail" autocomplete="email" required /><button type="submit">Quero receber</button><span class="form-note" id="newsletter-note" aria-live="polite">Sem spam. Só repertório.</span></form>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<script>
+  const form = document.querySelector("#newsletter-form");
+  const note = document.querySelector("#newsletter-note");
+  form?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (note) note.textContent = "Lista demonstrativa. A integração de e-mail vem na próxima etapa.";
+  });
+</script>

@@ -1,0 +1,14 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { url } from "../data/content.js";
+---
+
+<BaseLayout title="Página não encontrada — Somos Inventário" description="Essa página não está no inventário." noindex={true}>
+  <main id="main-content" class="archive-page container not-found">
+    <img src={url("/marca/vermelho.svg")} alt="" width="97" height="130" />
+    <span class="eyebrow">Erro 404 · fora do arquivo</span>
+    <h1>Essa página não está no <em>inventário</em>.</h1>
+    <p>O link pode ter mudado ou nunca ter existido.</p>
+    <div class="not-found-links"><a class="button-link" href={url("/")}>Voltar ao início</a><a class="section-link" href={url("/busca/")}>Procurar no arquivo <span aria-hidden="true">→</span></a></div>
+  </main>
+</BaseLayout>

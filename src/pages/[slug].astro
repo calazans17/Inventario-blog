@@ -1,0 +1,72 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ArticleCard from "../components/ArticleCard.astro";
+import PixelIcon from "../components/PixelIcon.astro";
+import { render } from "astro:content";
+import { articles, authorPath, categoryFor, categoryPath, clockTime, getAuthor, longDate, tagPath, url, articlePath } from "../data/content.js";
+
+export function getStaticPaths() {
+  return articles.map((article) => ({ params: { slug: article.slug }, props: { article } }));
+}
+
+const { article } = Astro.props;
+const { Content } = await render(article.entry);
+const category = categoryFor(article);
+const author = getAuthor(article.author);
+const sameTopic = (item) => item.category === article.category || item.tags.some((tag) => article.tags.includes(tag));
+const related = [...articles.filter((item) => item.slug !== article.slug && sameTopic(item)), ...articles.filter((item) => item.slug !== article.slug && !sameTopic(item))].slice(0, 3);
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    { "@type": "NewsArticle", headline: article.title, description: article.seo.description, image: [new URL(article.image, Astro.site).href], datePublished: article.date, dateModified: article.date, author: { "@type": "Person", name: author.name, url: new URL(authorPath(author), Astro.site).href }, publisher: { "@type": "Organization", name: "Somos Inventário", url: new URL(url("/"), Astro.site).href }, mainEntityOfPage: new URL(articlePath(article), Astro.site).href },
+    { "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Início", item: new URL(url("/"), Astro.site).href }, { "@type": "ListItem", position: 2, name: category.name, item: new URL(categoryPath(category), Astro.site).href }, { "@type": "ListItem", position: 3, name: article.title }] },
+  ],
+};
+---
+
+<BaseLayout title={`${article.seo.title} — Somos Inventário`} description={article.seo.description} image={article.image} article={article} schema={articleSchema}>
+  <main id="main-content" class="article-shell">
+    <div class="container">
+      <nav class="breadcrumbs" aria-label="Você está em"><a href={url("/")}>Início</a><span aria-hidden="true">/</span><a href={categoryPath(category)}>{category.name}</a></nav>
+      <header class="article-heading">
+        <a class="category-label" href={categoryPath(category)}><PixelIcon name={category.icon} size={15} />{category.name}</a>
+        <h1>{article.title}</h1>
+        <p class="article-deck">{article.summary}</p>
+        <div class="article-byline">
+          <a class="author-avatar" href={authorPath(author)} tabindex="-1" aria-hidden="true"><img src={author.image} alt="" width="48" height="48" /></a>
+          <div class="byline-author"><a class="author-name" href={authorPath(author)}>{author.name}</a><span>{author.role}</span></div>
+          <div class="article-published"><time datetime={article.date}>{longDate(article.date)} · {clockTime(article.date)}</time><span>{article.readingTime} min de leitura</span></div>
+        </div>
+      </header>
+    </div>
+
+    <figure class="article-cover container"><img src={article.image} alt={article.imageAlt} fetchpriority="high" width="1600" height="900" /><figcaption>{article.imageAlt}{article.imageCredit && <span>{article.imageCredit}</span>}</figcaption></figure>
+
+    <div class="article-layout container">
+      <article class="article-body" id="article-body">
+        <Content />
+        <div class="article-footer-row">
+          <div class="article-tags"><span class="eyebrow">No inventário</span>{article.tags.map((tag) => <a href={tagPath(tag)}>#{tag}</a>)}</div>
+          <button class="share-button" type="button" id="share-button">Compartilhar <span aria-hidden="true">↗</span></button>
+        </div>
+      </article>
+    </div>
+
+    <section class="related-section container" aria-labelledby="related-title">
+      <div class="section-heading"><div><span class="eyebrow">Continua no seu inventário</span><h2 id="related-title">Leia <em>também</em></h2></div></div>
+      <div class="card-grid">{related.map((item, index) => <ArticleCard article={item} index={index} />)}</div>
+    </section>
+  </main>
+</BaseLayout>
+
+<script>
+  const shareButton = document.querySelector("#share-button");
+  shareButton?.addEventListener("click", async () => {
+    if (navigator.share) {
+      try { await navigator.share({ title: document.title, url: window.location.href }); } catch { /* cancelado */ }
+      return;
+    }
+    await navigator.clipboard?.writeText(window.location.href);
+    if (shareButton) shareButton.textContent = "Link copiado ✓";
+  });
+</script>

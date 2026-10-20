@@ -1,0 +1,63 @@
+---
+import "../styles/global.css";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import { url } from "../data/content.js";
+const {
+  title = "Somos Inventário — mais do que categorias, é o seu universo",
+  description = "Beleza, música, games, pokémon e achadinhos. Mais do que categorias: é o seu universo.",
+  image,
+  currentPath = "",
+  article,
+  schema,
+  noindex = false,
+} = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const home = new URL(url("/"), Astro.site).href;
+const shareImage = image && new URL(image, Astro.site).href;
+const structuredData = schema ?? {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Somos Inventário",
+  url: home,
+  description,
+  publisher: { "@type": "Organization", name: "Somos Inventário", url: home },
+  potentialAction: { "@type": "SearchAction", target: `${home}busca/?q={search_term_string}`, "query-input": "required name=search_term_string" },
+};
+---
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#B23B2F" />
+    <meta name="description" content={description} />
+    <meta name="robots" content={noindex ? "noindex, nofollow" : "index, follow"} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href={url("/favicon.svg")} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Jost:wght@400;500;600&display=swap" rel="stylesheet" />
+    <meta property="og:site_name" content="Somos Inventário" />
+    <meta property="og:type" content={article ? "article" : "website"} />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    {shareImage && <meta property="og:image" content={shareImage} />}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {shareImage && <meta name="twitter:image" content={shareImage} />}
+    {article && <meta property="article:published_time" content={article.date} />}
+    <title>{title}</title>
+    <script type="application/ld+json" set:html={JSON.stringify(structuredData)}></script>
+  </head>
+  <body id="top">
+    <a class="skip-link" href="#main-content">Pular para o conteúdo</a>
+    <SiteHeader currentPath={currentPath} />
+    <slot />
+    <SiteFooter />
+  </body>
+</html>

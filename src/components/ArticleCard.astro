@@ -1,0 +1,19 @@
+---
+import PixelIcon from "./PixelIcon.astro";
+import { articlePath, categoryFor, categoryPath, shortDate } from "../data/content.js";
+const { article, variant = "standard", index = 0, headingLevel = 3 } = Astro.props;
+const category = categoryFor(article);
+const Heading = `h${headingLevel}`;
+---
+
+<article class:list={["article-card", `article-card--${variant}`]} style={`--card-index: ${index}`}>
+  <a class="card-image-link" href={articlePath(article)} tabindex="-1" aria-hidden="true">
+    <img class="card-image" src={article.image} alt="" loading={variant === "hero" ? "eager" : "lazy"} />
+  </a>
+  <div class="card-copy">
+    <div class="card-meta"><a class="category-label" href={categoryPath(category)}><PixelIcon name={category.icon} size={13} />{category.name}</a><time datetime={article.date}>{shortDate(article.date)}</time></div>
+    <Heading class="card-title"><a href={articlePath(article)}>{article.title}</a></Heading>
+    {variant !== "compact" && <p class="card-summary">{article.summary}</p>}
+    {variant === "hero" && <a class="hero-read" href={articlePath(article)}>Ler matéria <span aria-hidden="true">→</span></a>}
+  </div>
+</article>

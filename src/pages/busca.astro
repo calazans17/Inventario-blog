@@ -1,0 +1,45 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ArticleCard from "../components/ArticleCard.astro";
+import { articles, categoryFor, url } from "../data/content.js";
+
+const normalize = (text) => text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+const schema = { "@context": "https://schema.org", "@type": "SearchResultsPage", name: "Busca — Somos Inventário", url: new URL(url("/busca/"), Astro.site).href };
+---
+
+<BaseLayout title="Busca — Somos Inventário" description="Encontre histórias no arquivo do Somos Inventário." noindex={true} schema={schema}>
+  <main id="main-content" class="archive-page search-page container">
+    <nav class="breadcrumbs" aria-label="Você está em"><a href={url("/")}>Início</a><span aria-hidden="true">/</span><span>Busca</span></nav>
+    <header class="archive-heading"><span class="eyebrow">O arquivo está aberto</span><h1>O que ficou na sua <em>cabeça?</em></h1>
+      <form class="archive-search" role="search" action={url("/busca/")}><span class="search-icon" aria-hidden="true"></span><label class="sr-only" for="archive-search-input">Buscar no arquivo</label><input id="archive-search-input" name="q" type="search" placeholder="batom, pokémon, vinil..." autocomplete="off" /></form>
+      <p class="archive-count" id="search-count" aria-live="polite">{articles.length} histórias no arquivo</p>
+    </header>
+    <div class="card-grid" id="search-results">{articles.map((article, index) => <div class="search-result" data-search={normalize(`${article.title} ${article.summary} ${categoryFor(article).name} ${article.tags.join(" ")}`)}><ArticleCard article={article} index={index} /></div>)}</div>
+    <p class="empty-state" id="search-empty" hidden>Nenhuma história por aqui ainda. Tente outras palavras.</p>
+  </main>
+</BaseLayout>
+
+<script>
+  const input = document.querySelector("#archive-search-input");
+  const results = [...document.querySelectorAll(".search-result")];
+  const count = document.querySelector("#search-count");
+  const empty = document.querySelector("#search-empty");
+  const normalize = (text) => text.trim().toLocaleLowerCase("pt-BR").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (input instanceof HTMLInputElement) {
+    input.value = new URLSearchParams(window.location.search).get("q") ?? "";
+    input.form?.addEventListener("submit", (event) => event.preventDefault());
+    const filterResults = () => {
+      const query = normalize(input.value);
+      let visible = 0;
+      for (const result of results) {
+        const match = !query || result.dataset.search?.includes(query);
+        result.hidden = !match;
+        if (match) visible += 1;
+      }
+      if (count) count.textContent = `${visible} ${visible === 1 ? "história encontrada" : "histórias encontradas"}`;
+      if (empty instanceof HTMLElement) empty.hidden = visible > 0;
+    };
+    input.addEventListener("input", filterResults);
+    filterResults();
+  }
+</script>
