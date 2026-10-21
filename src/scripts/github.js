@@ -28,7 +28,10 @@ export function createClient(token, repo) {
     });
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));
-      throw new GithubError(response.status, data.message || response.statusText);
+      const message = response.status === 403 && /personal access token/i.test(data.message ?? "")
+        ? "o token não tem permissão de escrita. Edite o token no GitHub e troque Contents para \"Read and write\"."
+        : data.message || response.statusText;
+      throw new GithubError(response.status, message);
     }
     return response.status === 204 ? null : response.json();
   }
@@ -71,6 +74,8 @@ export function createClient(token, repo) {
     repo,
     user: () => api("/user"),
     repository: () => api(`/repos/${repo}`),
+    // Testa se o token pode escrever: um blob vazio não entra em nenhum commit e o GitHub descarta depois.
+    canWrite: () => api(`/repos/${repo}/git/blobs`, { method: "POST", body: { content: "", encoding: "utf-8" } }).then(() => true, (error) => (error.status === 403 || error.status === 404 ? false : Promise.reject(error))),
     list,
     read,
     commit,

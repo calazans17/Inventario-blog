@@ -95,7 +95,7 @@ code { padding: 2px 6px; border-radius: 6px; background: var(--beige); font-size
 .panel-main { width: 100%; max-width: calc(1320px + 2 * var(--gutter)); margin: 0 auto; padding: 32px var(--gutter) 96px; }
 .panel-loading { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 120px 0; color: var(--muted); }
 .panel-loading img { width: auto; height: 64px; animation: hop 1.2s ease-in-out infinite; }
-.toast { position: fixed; z-index: 40; bottom: 24px; left: 50%; max-width: calc(100vw - 32px); padding: 14px 20px; border-radius: 999px; color: var(--cream); background: var(--ink); box-shadow: 0 12px 30px #221a1933; font-size: 15px; transform: translateX(-50%); animation: rise .25s ease-out; }
+.toast { position: fixed; z-index: 40; bottom: 24px; left: 50%; max-width: calc(100vw - 32px); padding: 14px 20px; border-radius: 16px; color: var(--cream); background: var(--ink); box-shadow: 0 12px 30px #221a1933; font-size: 15px; transform: translateX(-50%); animation: rise .25s ease-out; }
 .toast[data-tone="error"] { background: var(--red-dark); }
 @keyframes rise { from { opacity: 0; transform: translate(-50%, 10px); } }
 

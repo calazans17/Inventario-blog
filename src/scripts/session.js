@@ -43,6 +43,8 @@ export async function signIn(token, repo) {
   } catch {
     throw new Error(`O token entrou, mas não enxerga o repositório ${repo}. Em "Repository access", escolha esse repositório.`);
   }
-  if (!repository.permissions?.push) throw new Error("Sua conta pode ler o repositório, mas não pode escrever. Peça acesso de escrita ou marque Contents: Read and write no token.");
+  if (!repository.permissions?.push) throw new Error("Sua conta pode ler o repositório, mas não pode escrever. Peça acesso de escrita a quem administra o repositório.");
+  // A conta pode ter acesso e o token não: o GitHub cria "Contents" como Read-only por padrão.
+  if (!(await client.canWrite())) throw new Error(`Esse token só tem permissão de leitura. No GitHub, edite o token e em Permissions → Contents troque "Read-only" por "Read and write".`);
   return { token, login: user.login, name: user.name || user.login, avatar: user.avatar_url, bio: user.bio || "" };
 }
