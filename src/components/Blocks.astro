@@ -1,0 +1,57 @@
+---
+// Corpo da matéria montado em blocos pela Redação (/painel).
+import { inline, paragraphs, youtubeId } from "../lib/inline.js";
+import { asset } from "../data/content.js";
+const { blocos = [] } = Astro.props;
+---
+
+{blocos.map((bloco) => {
+  if (bloco.tipo === "texto") return paragraphs(bloco.texto).map((html) => <p set:html={html} />);
+  if (bloco.tipo === "subtitulo") return <h2>{bloco.texto}</h2>;
+  if (bloco.tipo === "imagem") return (
+    <figure class:list={["block-figure", bloco.largura === "larga" && "block-figure--wide"]}>
+      <img src={asset(bloco.src)} alt={bloco.alt} loading="lazy" />
+      {bloco.legenda && <figcaption>{bloco.legenda}</figcaption>}
+    </figure>
+  );
+  if (bloco.tipo === "galeria") return (
+    <div class="block-gallery" data-count={Math.min(bloco.imagens.length, 3)}>
+      {bloco.imagens.map((imagem) => <figure><img src={asset(imagem.src)} alt={imagem.alt} loading="lazy" />{imagem.legenda && <figcaption>{imagem.legenda}</figcaption>}</figure>)}
+    </div>
+  );
+  if (bloco.tipo === "trecho") return (
+    <blockquote class="block-quote"><p set:html={inline(bloco.texto)} />{bloco.fonte && <cite>— {bloco.fonte}</cite>}</blockquote>
+  );
+  if (bloco.tipo === "dica") return (
+    <aside class="block-tip"><span class="eyebrow">{bloco.titulo || "Anota aí"}</span>{paragraphs(bloco.texto).map((html) => <p set:html={html} />)}</aside>
+  );
+  if (bloco.tipo === "lista") {
+    const List = bloco.numerada ? "ol" : "ul";
+    return <List class:list={["block-list", bloco.numerada && "block-list--ranked"]}>{bloco.itens.map((texto) => <li set:html={inline(texto)} />)}</List>;
+  }
+  if (bloco.tipo === "produto") return (
+    <div class="block-product">
+      {bloco.imagem && <img src={asset(bloco.imagem)} alt="" loading="lazy" />}
+      <div class="block-product-copy">
+        <span class="eyebrow">Achadinho{bloco.loja && ` · ${bloco.loja}`}</span>
+        <strong>{bloco.nome}</strong>
+        {bloco.nota && <p set:html={inline(bloco.nota)} />}
+        <div class="block-product-row">{bloco.preco && <span class="block-product-price">{bloco.preco}</span>}{bloco.link && <a class="button-link" href={bloco.link} target="_blank" rel="noreferrer sponsored">Ver na loja ↗</a>}</div>
+      </div>
+    </div>
+  );
+  if (bloco.tipo === "video") {
+    const id = youtubeId(bloco.url);
+    return (
+      <figure class="block-video">
+        {id ? <iframe src={`https://www.youtube-nocookie.com/embed/${id}`} title={bloco.legenda || "Vídeo"} loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen /> : <a class="section-link" href={bloco.url} target="_blank" rel="noreferrer">Assistir o vídeo ↗</a>}
+        {bloco.legenda && <figcaption>{bloco.legenda}</figcaption>}
+      </figure>
+    );
+  }
+  if (bloco.tipo === "pergunta") return (
+    <div class="block-qa"><p class="block-qa-q"><span aria-hidden="true">P.</span>{bloco.pergunta}</p>{paragraphs(bloco.resposta).map((html) => <p set:html={html} />)}</div>
+  );
+  if (bloco.tipo === "divisor") return <div class="block-divider" role="separator"><span /><span /><span /></div>;
+  return null;
+})}

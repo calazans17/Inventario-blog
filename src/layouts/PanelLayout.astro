@@ -1,0 +1,27 @@
+---
+// Base das páginas internas (login e Redação): sem cabeçalho do site e fora do Google.
+import "../styles/global.css";
+import "../styles/painel.css";
+import { url } from "../data/content.js";
+const { title } = Astro.props;
+// No Actions vem do próprio GitHub; CMS_REPO permite sobrescrever (ex.: rodando localmente).
+const repo = process.env.CMS_REPO || process.env.GITHUB_REPOSITORY || "calazans17/Inventario-blog";
+---
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#B23B2F" />
+    <link rel="icon" type="image/svg+xml" href={url("/favicon.svg")} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Jost:wght@400;500;600&display=swap" rel="stylesheet" />
+    <title>{title} — Somos Inventário</title>
+  </head>
+  <body class="panel-body" data-repo={repo} data-base={url("")}>
+    <slot />
+  </body>
+</html>

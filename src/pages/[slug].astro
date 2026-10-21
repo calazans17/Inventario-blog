@@ -2,8 +2,9 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ArticleCard from "../components/ArticleCard.astro";
 import PixelIcon from "../components/PixelIcon.astro";
+import Blocks from "../components/Blocks.astro";
 import { render } from "astro:content";
-import { articles, authorPath, categoryFor, categoryPath, clockTime, getAuthor, longDate, tagPath, url, articlePath } from "../data/content.js";
+import { articles, authorPath, categoryFor, categoryPath, clockTime, formatoLabel, getAuthor, longDate, nota, tagPath, url, articlePath } from "../data/content.js";
 
 export function getStaticPaths() {
   return articles.map((article) => ({ params: { slug: article.slug }, props: { article } }));
@@ -14,7 +15,9 @@ const { Content } = await render(article.entry);
 const category = categoryFor(article);
 const author = getAuthor(article.author);
 const sameTopic = (item) => item.category === article.category || item.tags.some((tag) => article.tags.includes(tag));
-const related = [...articles.filter((item) => item.slug !== article.slug && sameTopic(item)), ...articles.filter((item) => item.slug !== article.slug && !sameTopic(item))].slice(0, 3);
+const review = article.formato === "review" ? article.review : undefined;
+const stars = review ? Array.from({ length: 5 }, (_, index) => Math.max(0, Math.min(1, review.nota - index))) : [];
+const related =[...articles.filter((item) => item.slug !== article.slug && sameTopic(item)), ...articles.filter((item) => item.slug !== article.slug && !sameTopic(item))].slice(0, 3);
 const articleSchema = {
   "@context": "https://schema.org",
   "@graph": [
@@ -29,7 +32,7 @@ const articleSchema = {
     <div class="container">
       <nav class="breadcrumbs" aria-label="Você está em"><a href={url("/")}>Início</a><span aria-hidden="true">/</span><a href={categoryPath(category)}>{category.name}</a></nav>
       <header class="article-heading">
-        <a class="category-label" href={categoryPath(category)}><PixelIcon name={category.icon} size={15} />{category.name}</a>
+        <div class="article-kicker"><a class="category-label" href={categoryPath(category)}><PixelIcon name={category.icon} size={15} />{category.name}</a>{article.formato !== "materia" && <span class="format-tag">{formatoLabel(article.formato)}</span>}</div>
         <h1>{article.title}</h1>
         <p class="article-deck">{article.summary}</p>
         <div class="article-byline">
@@ -45,6 +48,23 @@ const articleSchema = {
     <div class="article-layout container">
       <article class="article-body" id="article-body">
         <Content />
+        <Blocks blocos={article.blocos} />
+        {review && (
+          <section class="review-box" aria-label="Veredito">
+            <div class="review-score">
+              <span class="eyebrow">Nota do inventário</span>
+              <strong>{nota(review.nota)}<small>/5</small></strong>
+              <span class="review-stars" aria-hidden="true">{stars.map((fill) => <span style={`--fill: ${fill * 100}%`}>★</span>)}</span>
+            </div>
+            <div class="review-copy">
+              {review.veredito && <p class="review-verdict">{review.veredito}</p>}
+              <div class="review-lists">
+                {review.pros.length > 0 && <div><span class="eyebrow">Amamos</span><ul>{review.pros.map((item) => <li>{item}</li>)}</ul></div>}
+                {review.contras.length > 0 && <div><span class="eyebrow">Nem tanto</span><ul>{review.contras.map((item) => <li>{item}</li>)}</ul></div>}
+              </div>
+            </div>
+          </section>
+        )}
         <div class="article-footer-row">
           <div class="article-tags"><span class="eyebrow">No inventário</span>{article.tags.map((tag) => <a href={tagPath(tag)}>#{tag}</a>)}</div>
           <button class="share-button" type="button" id="share-button">Compartilhar <span aria-hidden="true">↗</span></button>

@@ -1,0 +1,37 @@
+---
+import PanelLayout from "../layouts/PanelLayout.astro";
+import { categories, formatos, placements, url } from "../data/content.js";
+import { icons, gridToPath, ICON_SIZE } from "../lib/pixel.js";
+
+// Categorias, formatos e lugares da home vêm do mesmo lugar que o site usa.
+const svg = (name) => `<svg class="pixel-icon" width="16" height="16" viewBox="0 0 ${ICON_SIZE} ${ICON_SIZE}" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><path d="${gridToPath(icons[name] ?? icons.mais)}"/></svg>`;
+const config = {
+  categories: categories.map(({ slug, name, icon }) => ({ slug, name, icon: svg(icon) })),
+  formatos,
+  placements,
+  mark: url("/marca/vermelho.svg"),
+};
+---
+
+<PanelLayout title="Redação">
+  <div class="panel" id="panel">
+    <header class="panel-top">
+      <a class="panel-brand" href="#/"><img src={url("/marca/vermelho.svg")} alt="" width="22" height="30" /><span>Redação</span></a>
+      <nav class="panel-nav" aria-label="Redação">
+        <a href="#/" data-nav="lista">Postagens</a>
+        <a href="#/nova" data-nav="nova" class="panel-nav-cta">+ Nova postagem</a>
+      </nav>
+      <div class="deploy-pill" id="deploy-pill" hidden></div>
+      <div class="panel-user" id="panel-user"></div>
+    </header>
+    <main class="panel-main" id="view" aria-live="polite">
+      <div class="panel-loading"><img src={url("/marca/vermelho.svg")} alt="" width="48" height="64" /><span>Abrindo a redação…</span></div>
+    </main>
+    <div class="toast" id="toast" role="status" hidden></div>
+  </div>
+  <script type="application/json" id="panel-config" set:html={JSON.stringify(config)} />
+</PanelLayout>
+
+<script>
+  import "../scripts/painel.js";
+</script>

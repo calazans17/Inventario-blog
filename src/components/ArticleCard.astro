@@ -1,14 +1,16 @@
 ---
 import PixelIcon from "./PixelIcon.astro";
-import { articlePath, categoryFor, categoryPath, shortDate } from "../data/content.js";
+import { articlePath, categoryFor, categoryPath, formatBadge, shortDate } from "../data/content.js";
 const { article, variant = "standard", index = 0, headingLevel = 3 } = Astro.props;
 const category = categoryFor(article);
 const Heading = `h${headingLevel}`;
+const badge = formatBadge(article);
 ---
 
 <article class:list={["article-card", `article-card--${variant}`]} style={`--card-index: ${index}`}>
   <a class="card-image-link" href={articlePath(article)} tabindex="-1" aria-hidden="true">
     <img class="card-image" src={article.image} alt="" loading={variant === "hero" ? "eager" : "lazy"} />
+    {badge && <span class="format-badge">{badge}</span>}
   </a>
   <div class="card-copy">
     <div class="card-meta"><a class="category-label" href={categoryPath(category)}><PixelIcon name={category.icon} size={13} />{category.name}</a><time datetime={article.date}>{shortDate(article.date)}</time></div>

@@ -1,6 +1,6 @@
 # Somos Inventário
 
-Portal editorial estático (Astro 7) publicado no GitHub Pages, com painel em `/admin` para cadastrar postagens com imagens.
+Portal editorial estático (Astro 7) publicado no GitHub Pages, com uma Redação própria em `/painel` (login em `/entrar`) para escrever e publicar postagens.
 
 ## Rodar localmente
 
@@ -14,25 +14,31 @@ npm run build      # gera dist/
 
 ## Publicação (GitHub Pages)
 
-O workflow `.github/workflows/deploy.yml` faz o build e publica a cada push na `main`, inclusive os commits feitos pelo painel. O endereço e o caminho base (`/nome-do-repo/`) vêm do próprio GitHub Pages, sem configuração manual.
+O workflow `.github/workflows/deploy.yml` faz o build e publica a cada push na `main`, inclusive os commits feitos pela Redação. O endereço e o caminho base (`/nome-do-repo/`) vêm do próprio GitHub Pages, sem configuração manual.
 
 Primeira vez: no repositório, **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
 Domínio próprio depois: configure em Settings → Pages; o workflow passa a gerar o site na raiz automaticamente.
 
-## Painel de postagens (`/admin`)
+## Redação (`/entrar` → `/painel`)
 
-O painel é o [Sveltia CMS](https://github.com/sveltia/sveltia-cms). Ele salva direto no repositório: cada postagem vira um arquivo em `src/content/posts/`, cada autor um JSON em `src/content/autores/` e as imagens vão para `public/uploads/`. Depois de salvar, o site atualiza em 1–2 minutos (o tempo do Actions).
+O site não tem servidor, então o login é feito com um token do GitHub de cada pessoa. O token fica só no navegador e a Redação fala direto com a API do GitHub: cada salvamento vira **um commit** na `main` (texto + imagens juntos), que dispara o deploy.
 
-Para entrar, abra `https://<usuario>.github.io/<repo>/admin/`, escolha **Sign in with Token** e cole um token do GitHub:
+Gerar o token (`/entrar` tem o passo a passo):
 
 1. GitHub → Settings → Developer settings → **Fine-grained tokens** → Generate new token.
 2. Repository access: só este repositório.
-3. Permissions → **Contents: Read and write**.
+3. Permissions → **Contents: Read and write**. Opcional: **Actions: Read**, para a Redação mostrar "Publicando… / No ar ✓".
 
-Cada pessoa da equipe usa o próprio token e precisa ter acesso de escrita ao repositório.
+Só entra quem tem permissão de escrita no repositório. No primeiro acesso a Redação pede o perfil de autor (nome, função, bio e foto, com o avatar do GitHub como padrão), salvo em `src/content/autores/<login>.json`.
 
-Campos de uma postagem: título, resumo, capa (upload), descrição e crédito da imagem, categoria, **onde aparece na home**, autor, data, tags, texto (com imagens no meio), SEO opcional e rascunho.
+### Escrevendo
+
+- **Formato**: Matéria, Review (nota de 0 a 5, veredito, prós e contras), Lista, Guia, Entrevista ou Opinião. O formato vira um selo nos cards; numa postagem nova, escolher o formato monta um esqueleto de blocos.
+- **Blocos do corpo**: texto (com `**negrito**`, `_itálico_` e `[link](https://...)`), subtítulo, imagem (normal ou larga), galeria, trecho em destaque, caixa de dica, lista/ranking, achadinho (foto, preço, loja e link), vídeo do YouTube, pergunta & resposta e divisor. Dá para inserir entre blocos, mover, duplicar e remover.
+- **Imagens**: escolher ou arrastar. São reduzidas para até 1800 px e convertidas em WebP no navegador antes de subir para `public/uploads/<ano>/`.
+- Pré-visualização da página, prévia do card e do resultado no Google, contador de leitura, cópia local automática (para não perder texto) e `Ctrl+S`.
+- **Salvar rascunho** grava sem publicar; **Publicar** confere título, chamada, capa, categoria, autor e corpo.
 
 | "Onde aparece" | Lugar no site |
 | --- | --- |
@@ -41,7 +47,7 @@ Campos de uma postagem: título, resumo, capa (upload), descrição e crédito d
 | Guias & achadinhos | Faixa vermelha da home (até 3) |
 | Nada marcado | Últimas entradas, página da categoria, tags e busca |
 
-As categorias têm ícone em pixel e ficam no código (`src/data/content.js`); o painel lê a lista de lá.
+As categorias têm ícone em pixel e ficam no código (`src/data/content.js`); a Redação lê a lista de lá no build.
 
 ## Identidade visual
 
@@ -53,14 +59,14 @@ As categorias têm ícone em pixel e ficam no código (`src/data/content.js`); o
 
 | Pasta/arquivo | O que tem |
 | --- | --- |
-| `src/content/` | Postagens e autores (editados pelo painel) |
-| `src/content.config.ts` | Campos aceitos em cada postagem |
-| `src/data/content.js` | Categorias, lugares da home e helpers de URL |
-| `src/pages/admin/` | Painel e a configuração dele |
-| `public/uploads/` | Imagens enviadas pelo painel |
+| `src/content/` | Postagens e autores (editados pela Redação) |
+| `src/content.config.ts` | Campos e blocos aceitos em cada postagem |
+| `src/data/content.js` | Categorias, formatos, lugares da home e helpers de URL |
+| `src/components/Blocks.astro` | Como cada bloco aparece na matéria |
+| `src/pages/entrar.astro`, `src/pages/painel.astro` | Login e Redação |
+| `src/scripts/` | Código da Redação (API do GitHub, sessão, editor) |
+| `public/uploads/` | Imagens enviadas pela Redação |
 
-Rotas: `/`, `/{slug}/`, `/categoria/{slug}/`, `/tag/{slug}/`, `/autor/{slug}/`, `/busca/?q=termo`. `sitemap.xml` e `robots.txt` são gerados no build.
+Rotas: `/`, `/{slug}/`, `/categoria/{slug}/`, `/tag/{slug}/`, `/autor/{slug}/`, `/busca/?q=termo`, `/entrar/`, `/painel/` (`/admin/` redireciona). `sitemap.xml` e `robots.txt` são gerados no build.
 
-## Conteúdo de demonstração
-
-As postagens e os autores atuais são fictícios, com fotos do Unsplash. Apague pelo painel antes de lançar. A newsletter ainda é só visual.
+A newsletter ainda é só visual.

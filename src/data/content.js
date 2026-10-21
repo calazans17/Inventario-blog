@@ -7,7 +7,7 @@ export const url = (path) => `${BASE}${path}`;
 export const asset = (src) => (src?.startsWith("/") && !src.startsWith("//") ? url(src) : src);
 
 // As categorias seguem a identidade visual e cada uma tem seu ícone em pixel,
-// por isso ficam no código. Ao mudar aqui, atualize as opções em src/pages/admin/config.yml.ts.
+// por isso ficam no código. A Redação (/painel) lê esta lista no build.
 export const categories = [
   { slug: "beleza", name: "Beleza", icon: "beleza", description: "Maquiagem, cuidados e os produtos que viram rotina (e assunto)." },
   { slug: "musica", name: "Música", icon: "musica", description: "Discos, shows e as músicas que marcam fases inteiras da vida." },
@@ -15,6 +15,24 @@ export const categories = [
   { slug: "pokemon", name: "Pokémon", icon: "pokemon", description: "Cartas, jogos, anime e trinta anos de pokémon na memória coletiva." },
   { slug: "achadinhos", name: "Achadinhos", icon: "achadinhos", description: "Coisas boas, baratas e úteis que a gente achou e quer te contar." },
 ];
+
+// Formatos de postagem: o selo aparece nos cards e no topo da matéria.
+export const formatos = [
+  { value: "materia", label: "Matéria", hint: "Texto corrido, do jeito clássico." },
+  { value: "review", label: "Review", hint: "Opinião com nota de 0 a 5, prós e contras." },
+  { value: "lista", label: "Lista", hint: "Top 5, 10 motivos, ranking." },
+  { value: "guia", label: "Guia", hint: "Passo a passo pra salvar e voltar." },
+  { value: "entrevista", label: "Entrevista", hint: "Perguntas e respostas." },
+  { value: "opiniao", label: "Opinião", hint: "Coluna assinada, ponto de vista." },
+];
+export const formatoLabel = (value) => formatos.find((formato) => formato.value === value)?.label ?? "Matéria";
+export const nota = (value) => value.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+// Selo do card: some na matéria comum, mostra a nota no review.
+export const formatBadge = (article) => {
+  if (!article.formato || article.formato === "materia") return null;
+  const label = formatoLabel(article.formato);
+  return article.formato === "review" && article.review ? `${label} ★ ${nota(article.review.nota)}` : label;
+};
 
 // Lugares da home que o painel deixa escolher em "Onde aparece".
 export const placements = [
@@ -30,6 +48,8 @@ export const authors = (await getCollection("autores")).map(({ id, data }) => ({
 }));
 
 const wordCount = (text = "") => text.split(/\s+/).filter(Boolean).length;
+// Texto dos blocos (para tempo de leitura e busca).
+export const blocksText = (blocos = []) => blocos.map((bloco) => [bloco.texto, bloco.titulo, bloco.pergunta, bloco.resposta, bloco.nome, bloco.legenda, ...(bloco.itens ?? [])].filter(Boolean).join(" ")).join(" ");
 
 const entries = (await getCollection("posts", ({ data }) => !data.rascunho)).map((entry) => {
   const { data } = entry;
@@ -44,7 +64,10 @@ const entries = (await getCollection("posts", ({ data }) => !data.rascunho)).map
     imageCredit: data.imageCredit,
     date: data.date.toISOString(),
     author: data.author,
-    readingTime: Math.max(1, Math.round(wordCount(entry.body) / 200)),
+    formato: data.formato,
+    review: data.review,
+    blocos: data.blocos,
+    readingTime: Math.max(1, Math.round(wordCount() / 200)),
     featured: data.onde.includes("principal"),
     trending: data.onde.includes("em-alta"),
     guide: data.onde.includes("guias"),
@@ -56,7 +79,8 @@ const entries = (await getCollection("posts", ({ data }) => !data.rascunho)).map
 export const articles = [...entries].sort((a, b) => new Date(b.date) - new Date(a.date));
 
 export const getCategory = (slug) => categories.find((category) => category.slug === slug);
-export const getAuthor = (slug) => authors.find((author) => author.slug === slug);
+const redacao = { slug: "", name: "Redação Inventário", role: "Equipe", bio: "", image: url("/marca/vermelho.svg") };
+export const getAuthor = (slug) => authors.find((author) => author.slug === slug) ?? redacao;
 export const categoryFor = (article) => getCategory(article.category);
 export const articlePath = (article) => url(`/${article.slug}/`);
 export const categoryPath = (category) => url(`/categoria/${category.slug}/`);
