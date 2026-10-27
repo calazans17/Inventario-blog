@@ -1,29 +1,20 @@
-// Redação do Somos Inventário: lista, editor em blocos e perfil de autor.
-// Tudo roda no navegador e salva no repositório pela API do GitHub (ver github.js).
-import { bytesToBase64, createClient } from "./github.js";
-import { parse, stringify } from "./frontmatter.js";
-import { clearSession, getSession } from "./session.js";
+// Redação do Somos Inventário: lista de postagens e editor em blocos.
+// Tudo roda no navegador e salva no Supabase (tabela posts e bucket de imagens).
+import { pages, supabase } from "./auth.js";
+import { BUCKET, fromRow, toRow } from "../lib/supabase.js";
 import { escapeHtml as h, inline, paragraphs, youtubeId } from "../lib/inline.js";
 
-const { repo, base } = document.body.dataset;
+const { base } = document.body.dataset;
 const config = JSON.parse(document.querySelector("#panel-config").textContent);
-const session = getSession();
-if (!session) window.location.replace(`${base}/entrar/`);
-
-const gh = session && createClient(session.token, repo);
-// O perfil de quem está logado fica em src/content/autores/<login>.json.
-const me = session?.login.toLowerCase();
+let user = null;
 const view = document.querySelector("#view");
-const POSTS = "src/content/posts";
-const AUTHORS = "src/content/autores";
-const RESERVED = ["busca", "categoria", "tag", "autor", "entrar", "painel", "admin", "marca", "uploads", "404", "sitemap", "robots"];
+const RESERVED = ["busca", "categoria", "tag", "entrar", "cadastro", "painel", "admin", "marca", "uploads", "404", "sitemap", "robots"];
 
 let posts = [];
-let authors = [];
 let draft = null;
 let dirty = false;
 let showPreview = false;
-// Imagens escolhidas nesta sessão: caminho → arquivo (até salvar) e caminho → URL local (para mostrar).
+// Imagens escolhidas nesta sessão: caminho provisório → arquivo (até salvar) e → URL local (para mostrar).
 const pending = new Map();
 const previews = new Map();
 
@@ -33,7 +24,6 @@ const slugify = (text = "") => text.toLowerCase().normalize("NFD").replace(/[̀-
 const imgUrl = (src) => (!src ? "" : previews.get(src) ?? (src.startsWith("/") && !src.startsWith("//") ? `${base}${src}` : src));
 const category = (slug) => config.categories.find((item) => item.slug === slug);
 const formatoLabel = (value) => config.formatos.find((item) => item.value === value)?.label ?? "Matéria";
-const authorName = (slug) => authors.find((item) => item.slug === slug)?.name ?? (slug || "Sem autor");
 const firstName = (name = "") => name.split(" ")[0];
 const toLocalInput = (iso) => {
   const date = new Date(iso);
@@ -117,32 +107,38 @@ function cleanBlock(bloco) {
 
 /* ---------- carregamento ---------- */
 
+const sortPosts = (list) => list.sort((a, b) => new Date(b.data.date) - new Date(a.data.date));
+
 async function loadAll() {
-  const [postFiles, authorFiles] = await Promise.all([gh.list(POSTS), gh.list(AUTHORS)]);
-  const [loadedPosts, loadedAuthors] = await Promise.all([
-    Promise.all(postFiles.filter((file) => file.name.endsWith(".md")).map(async (file) => {
-      const { data, body } = parse(await gh.read(file.path));
-      return { slug: file.name.replace(/\.md$/, ""), data, body };
-    })),
-    Promise.all(authorFiles.filter((file) => file.name.endsWith(".json")).map(async (file) => {
-      const data = JSON.parse(await gh.read(file.path));
-      return { slug: file.name.replace(/\.json$/, ""), ...data };
-    })),
-  ]);
-  posts = loadedPosts.sort((a, b) => new Date(b.data.date) - new Date(a.data.date));
-  authors = loadedAuthors.sort((a, b) => a.name.localeCompare(b.name));
+  const { data, error } = await supabase.from("posts").select("*");
+  if (error) throw error;
+  posts = sortPosts(data.map((row) => ({ slug: row.slug, data: fromRow(row) })));
+}
+
+/* ---------- imagens no Supabase ---------- */
+
+// Caminho dentro do bucket a partir da URL pública (só das imagens que são nossas).
+const storagePrefix = supabase.storage.from(BUCKET).getPublicUrl("").data.publicUrl;
+const storagePath = (src) => (typeof src === "string" && src.startsWith(storagePrefix) ? decodeURIComponent(src.slice(storagePrefix.length)) : null);
+const imagesOf = (data) => [...new Set((JSON.stringify(data).match(/"(https?:[^"]+)"/g) ?? []).map((match) => storagePath(JSON.parse(match))).filter(Boolean))];
+
+async function removeImages(paths) {
+  if (!paths.length) return;
+  const { error } = await supabase.storage.from(BUCKET).remove(paths);
+  if (error) console.warn("Não deu pra apagar imagens antigas:", error.message);
 }
 
 /* ---------- cabeçalho ---------- */
 
+const userName = () => user?.user_metadata?.nome || user?.email?.split("@")[0] || "";
+
 function renderUser() {
   document.querySelector("#panel-user").innerHTML = `
     <details class="user-menu">
-      <summary><img src="${h(session.avatar)}" alt="" width="34" height="34" /><span>${h(firstName(session.name))}</span></summary>
+      <summary><span class="user-initial" aria-hidden="true">${h(userName().charAt(0).toUpperCase())}</span><span>${h(firstName(userName()))}</span></summary>
       <div class="user-menu-list">
-        <a href="#/perfil">Meu perfil de autor</a>
+        <span class="user-menu-email">${h(user.email)}</span>
         <a href="${base}/" target="_blank" rel="noreferrer">Ver o site ↗</a>
-        <a href="https://github.com/${h(repo)}" target="_blank" rel="noreferrer">Repositório ↗</a>
         <button type="button" data-action="logout">Sair</button>
       </div>
     </details>`;
@@ -152,39 +148,10 @@ function setNav(active) {
   for (const link of document.querySelectorAll("[data-nav]")) link.classList.toggle("is-active", link.dataset.nav === active);
 }
 
-/* ---------- deploy ---------- */
+/* ---------- publicação ---------- */
 
-async function watchDeploy(commitSha, pagePath) {
-  const pill = document.querySelector("#deploy-pill");
-  const show = (state, html) => {
-    pill.hidden = false;
-    pill.dataset.state = state;
-    pill.innerHTML = html;
-  };
-  show("running", `<span class="pulse"></span>Publicando no site…`);
-  const started = Date.now();
-  clearTimeout(watchDeploy.timer);
-  const tick = async () => {
-    const run = await gh.latestRun();
-    if (!run) {
-      show("done", `Salvo ✓ <small>o site atualiza em 1–2 min</small>`);
-      return;
-    }
-    const mine = run.head_sha === commitSha;
-    if (mine && run.status === "completed") {
-      if (run.conclusion === "success") show("done", `No ar ✓ <a href="${base}${pagePath}" target="_blank" rel="noreferrer">ver ↗</a>`);
-      else if (run.conclusion === "cancelled") show("done", `Salvo ✓ <small>entra no próximo deploy</small>`);
-      else show("fail", `Deploy falhou <a href="${run.html_url}" target="_blank" rel="noreferrer">detalhes ↗</a>`);
-      return;
-    }
-    if (Date.now() - started > 6 * 60000) {
-      show("done", `Salvo ✓ <a href="https://github.com/${repo}/actions" target="_blank" rel="noreferrer">acompanhar ↗</a>`);
-      return;
-    }
-    watchDeploy.timer = setTimeout(tick, 8000);
-  };
-  watchDeploy.timer = setTimeout(tick, 5000);
-}
+// O site é estático: depois de salvar, o GitHub Actions refaz as páginas (ver .github/workflows/deploy.yml).
+const SITE_DELAY = "O site atualiza em alguns minutos.";
 
 /* ---------- lista ---------- */
 
@@ -195,12 +162,10 @@ function renderList() {
   setNav("lista");
   const published = posts.filter((post) => !post.data.rascunho);
   const drafts = posts.filter((post) => post.data.rascunho);
-  const mine = posts.filter((post) => post.data.author === me);
   const normalized = slugify(listQuery).replace(/-/g, " ");
   const visible = posts.filter((post) => {
     if (listFilter === "publicadas" && post.data.rascunho) return false;
     if (listFilter === "rascunhos" && !post.data.rascunho) return false;
-    if (listFilter === "minhas" && post.data.author !== me) return false;
     return !normalized || slugify(`${post.data.title} ${post.data.summary} ${(post.data.tags ?? []).join(" ")}`).replace(/-/g, " ").includes(normalized);
   });
   const hour = new Date().getHours();
@@ -209,7 +174,7 @@ function renderList() {
   view.innerHTML = `
     <section class="dash-hero">
       <div>
-        <span class="eyebrow">${greeting}, ${h(firstName(session.name))}</span>
+        <span class="eyebrow">${greeting}, ${h(firstName(userName()))}</span>
         <h1>O que vai pro <em>inventário</em> hoje?</h1>
       </div>
       <a class="primary-button" href="#/nova"><span>Nova postagem</span><span aria-hidden="true">+</span></a>
@@ -217,13 +182,12 @@ function renderList() {
     <section class="dash-stats" aria-label="Resumo">
       <div><strong>${published.length}</strong><span>no ar</span></div>
       <div><strong>${drafts.length}</strong><span>rascunhos</span></div>
-      <div><strong>${mine.length}</strong><span>suas</span></div>
       <div class="dash-cats">${config.categories.map((item) => `<span title="${h(item.name)}">${item.icon}<b>${posts.filter((post) => post.data.category === item.slug).length}</b></span>`).join("")}</div>
     </section>
     <section class="dash-list">
       <div class="dash-toolbar">
         <div class="segmented" role="tablist">
-          ${[["todas", "Todas"], ["publicadas", "No ar"], ["rascunhos", "Rascunhos"], ["minhas", "Minhas"]].map(([value, label]) => `<button type="button" role="tab" aria-selected="${listFilter === value}" data-action="filter" data-value="${value}">${label}</button>`).join("")}
+          ${[["todas", "Todas"], ["publicadas", "No ar"], ["rascunhos", "Rascunhos"]].map(([value, label]) => `<button type="button" role="tab" aria-selected="${listFilter === value}" data-action="filter" data-value="${value}">${label}</button>`).join("")}
         </div>
         <label class="dash-search"><span class="search-icon" aria-hidden="true"></span><input type="search" id="list-search" placeholder="Buscar postagem" value="${h(listQuery)}" /></label>
       </div>
@@ -249,7 +213,7 @@ function postRow(post) {
         <span class="post-row-copy">
           <span class="post-row-meta">${cat ? `<span class="category-label">${cat.icon}${h(cat.name)}</span>` : ""}<span class="chip">${h(formatoLabel(data.formato))}${data.formato === "review" && data.review ? ` ★ ${nota(data.review.nota)}` : ""}</span>${data.rascunho ? `<span class="chip chip--draft">Rascunho</span>` : `<span class="chip chip--live">No ar</span>`}</span>
           <strong>${h(data.title || "Sem título")}</strong>
-          <small>${h(authorName(data.author))} · ${data.date ? dateLabel(data.date) : ""}</small>
+          <small>${data.date ? dateLabel(data.date) : ""}</small>
         </span>
       </a>
       <div class="post-row-actions">
@@ -265,12 +229,13 @@ const emptyList = () => posts.length
 
 async function deletePost(slug) {
   const post = posts.find((item) => item.slug === slug);
-  if (!post || !window.confirm(`Excluir "${post.data.title}"? Ela sai do site no próximo deploy.`)) return;
+  if (!post || !window.confirm(`Excluir "${post.data.title}"? Ela sai do site junto com as imagens dela.`)) return;
   try {
-    const commit = await gh.commit(`Remove postagem: ${slug}`, { remove: [`${POSTS}/${slug}.md`] });
+    const { error } = await supabase.from("posts").delete().eq("slug", slug);
+    if (error) throw error;
+    await removeImages(imagesOf(post.data));
     posts = posts.filter((item) => item !== post);
-    toast("Postagem excluída.");
-    watchDeploy(commit.sha, "/");
+    toast(`Postagem excluída. ${SITE_DELAY}`);
     renderList();
   } catch (error) {
     toast(`Não deu pra excluir: ${error.message}`, "error");
@@ -289,7 +254,6 @@ function newDraft() {
     summary: "",
     formato: "materia",
     category: "",
-    author: authors.some((item) => item.slug === me) ? me : authors[0]?.slug ?? "",
     date: new Date().toISOString(),
     image: "",
     imageAlt: "",
@@ -301,7 +265,6 @@ function newDraft() {
     seoTitle: "",
     seoDescription: "",
     rascunho: false,
-    body: "",
   };
 }
 
@@ -316,7 +279,6 @@ function draftFromPost(post) {
     tags: data.tags ?? [],
     blocos: data.blocos ?? [],
     review: { nota: 4, veredito: "", pros: [], contras: [], ...(data.review ?? {}) },
-    body: post.body,
   };
 }
 
@@ -414,9 +376,6 @@ function renderEditor() {
           <div class="cat-picker">${config.categories.map((item) => `<button type="button" data-action="category" data-value="${item.slug}" aria-pressed="${draft.category === item.slug}">${item.icon}${h(item.name)}</button>`).join("")}</div>
         </section>
         <section class="side-card">
-          <label class="field"><span class="field-label">Autor</span>
-            <select data-path="author">${authors.length ? authors.map((item) => `<option value="${h(item.slug)}" ${draft.author === item.slug ? "selected" : ""}>${h(item.name)}</option>`).join("") : `<option value="">Crie seu perfil primeiro</option>`}</select>
-          </label>
           <label class="field"><span class="field-label">Data de publicação</span><input type="datetime-local" data-path="date" data-kind="date" value="${toLocalInput(draft.date)}" /></label>
           <label class="field"><span class="field-label">Endereço</span>
             ${draft.existing ? `<code class="slug-preview">/${h(draft.slug)}/</code>` : `<span class="slug-input"><span>/</span><input data-path="slugInput" data-kind="slug" value="${h(draft.slugInput)}" placeholder="${h(slugPreview)}" /><span>/</span></span>`}
@@ -603,7 +562,6 @@ function blocksHtml(blocos) {
 
 function articlePreview() {
   const cat = category(draft.category);
-  const author = authors.find((item) => item.slug === draft.author);
   const review = draft.review;
   const minutes = Math.max(1, Math.round(blockWords() / 200));
   return `
@@ -615,8 +573,6 @@ function articlePreview() {
           <h1>${h(draft.title || "Seu título aqui")}</h1>
           <p class="article-deck">${h(draft.summary)}</p>
           <div class="article-byline">
-            ${author?.image ? `<span class="author-avatar"><img src="${h(imgUrl(author.image))}" alt="" width="48" height="48" /></span>` : ""}
-            <div class="byline-author"><span class="author-name">${h(author?.name ?? "Autor")}</span><span>${h(author?.role ?? "")}</span></div>
             <div class="article-published"><time>${dateLabel(draft.date)}</time><span>${minutes} min de leitura</span></div>
           </div>
         </header>
@@ -692,7 +648,8 @@ async function prepareImage(file) {
   }
   if (blob.size > 20 * 1024 * 1024) throw new Error("Imagem grande demais (máximo 20 MB).");
   const name = `${slugify(file.name.replace(/\.[^.]+$/, "")) || "imagem"}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}.${ext}`;
-  const src = `/uploads/${new Date().getFullYear()}/${name}`;
+  // Caminho provisório; ao salvar, a imagem sobe para o bucket e ganha a URL pública.
+  const src = `pendente:${new Date().getFullYear()}/${name}`;
   pending.set(src, blob);
   previews.set(src, URL.createObjectURL(blob));
   return src;
@@ -737,7 +694,6 @@ function validate(publishing) {
     if (!draft.summary.trim()) errors.push("Escreva o trecho de chamada.");
     if (!draft.image) errors.push("Escolha uma imagem de capa.");
     if (!draft.category) errors.push("Escolha a categoria.");
-    if (!draft.author) errors.push("Escolha o autor (ou crie seu perfil em Meu perfil).");
     if (!draft.blocos.some((bloco) => !blockIsEmpty(bloco))) errors.push("O corpo da matéria está vazio.");
   }
   const box = document.querySelector("#form-errors");
@@ -749,17 +705,19 @@ function validate(publishing) {
 
 async function save(publishing) {
   if (!validate(publishing)) return;
+  // "Salvar rascunho" numa postagem que está no ar tira ela do site.
+  if (!publishing && draft.existing && !draft.rascunho && !window.confirm("Essa postagem está no ar. Salvar como rascunho tira ela do site até você publicar de novo. Continuar?")) return;
   const buttons = view.querySelectorAll(".editor-bar button");
   buttons.forEach((button) => (button.disabled = true));
   const state = document.querySelector("#editor-state");
   state.textContent = "Salvando…";
   const slug = draft.existing ? draft.slug : uniqueSlug(draft.slugInput || slugify(draft.title) || "nova-postagem");
+  const previous = posts.find((item) => item.slug === slug);
   const data = {
     title: draft.title.trim(),
     summary: draft.summary.trim(),
     date: new Date(draft.date).toISOString(),
     category: draft.category,
-    author: draft.author,
     formato: draft.formato,
     image: draft.image,
     imageAlt: draft.imageAlt.trim(),
@@ -772,20 +730,40 @@ async function save(publishing) {
     rascunho: !publishing,
     blocos: draft.blocos.filter((bloco) => !blockIsEmpty(bloco)).map(cleanBlock),
   };
-  const serialized = JSON.stringify(data);
+  let serialized = JSON.stringify(data);
   const images = [...pending.keys()].filter((src) => serialized.includes(src));
+  // Uma cópia local recuperada depois de recarregar a página não traz mais o arquivo da imagem.
+  if ((serialized.match(/"pendente:[^"]+"/g) ?? []).some((match) => !pending.has(JSON.parse(match)))) {
+    toast("Uma imagem desta versão recuperada se perdeu ao recarregar a página. Escolha ela de novo e salve.", "error");
+    state.textContent = "Falta uma imagem";
+    buttons.forEach((button) => (button.disabled = false));
+    return;
+  }
   try {
-    const files = [{ path: `${POSTS}/${slug}.md`, text: stringify(data, draft.body) }];
-    for (const src of images) files.push({ path: `public${src}`, base64: bytesToBase64(new Uint8Array(await pending.get(src).arrayBuffer())) });
-    const verb = draft.existing ? "Atualiza" : "Nova";
-    const commit = await gh.commit(`${verb} postagem: ${slug}${publishing ? "" : " (rascunho)"}`, { files });
-    images.forEach((src) => pending.delete(src));
+    // Primeiro sobem as imagens novas; o texto passa a apontar para a URL pública de cada uma.
+    for (const src of images) {
+      const path = src.slice("pendente:".length);
+      const { error } = await supabase.storage.from(BUCKET).upload(path, pending.get(src), { contentType: pending.get(src).type, upsert: false });
+      if (error) throw error;
+      const { publicUrl } = supabase.storage.from(BUCKET).getPublicUrl(path).data;
+      serialized = serialized.split(JSON.stringify(src).slice(1, -1)).join(publicUrl);
+      previews.set(publicUrl, previews.get(src));
+      pending.delete(src);
+    }
+    const saved = JSON.parse(serialized);
+    // Campos opcionais apagados no editor também precisam ser apagados no banco.
+    const row = { ...toRow({ imageCredit: null, review: null, seoTitle: null, seoDescription: null, ...saved }), slug, updated_at: new Date().toISOString() };
+    const { error } = draft.existing
+      ? await supabase.from("posts").update(row).eq("slug", slug)
+      : await supabase.from("posts").insert(row);
+    if (error) throw error.code === "23505" ? new Error("já existe uma postagem com esse endereço. Troque o endereço e salve de novo.") : error;
+    // Imagens que saíram da postagem não ficam sobrando no bucket.
+    if (previous) await removeImages(imagesOf(previous.data).filter((path) => !imagesOf(saved).includes(path)));
     try { localStorage.removeItem(draftKey()); } catch { /* ignora */ }
-    const post = { slug, data: JSON.parse(serialized), body: draft.body };
-    posts = [post, ...posts.filter((item) => item.slug !== slug)].sort((a, b) => new Date(b.data.date) - new Date(a.data.date));
+    const post = { slug, data: saved };
+    posts = sortPosts([post, ...posts.filter((item) => item.slug !== slug)]);
     dirty = false;
-    toast(publishing ? "Publicado! O site atualiza em instantes." : "Rascunho salvo.");
-    watchDeploy(commit.sha, publishing ? `/${slug}/` : "/");
+    toast(publishing ? `Publicado! ${SITE_DELAY}` : `Rascunho salvo.${previous && !previous.data.rascunho ? ` A postagem sai do ar. ${SITE_DELAY}` : ""}`);
     if (location.hash !== `#/editar/${slug}`) {
       history.replaceState(null, "", `#/editar/${slug}`);
       lastHash = location.hash;
@@ -797,67 +775,6 @@ async function save(publishing) {
     state.textContent = "Erro ao salvar";
     buttons.forEach((button) => (button.disabled = false));
   }
-}
-
-/* ---------- perfil ---------- */
-
-function renderProfile() {
-  setNav("");
-  const existing = authors.find((item) => item.slug === me);
-  const profile = existing ?? { slug: me, name: session.name, role: "", bio: session.bio, image: session.avatar, social: "" };
-  draft = null;
-  view.innerHTML = `
-    <form class="profile" id="profile-form">
-      ${existing ? "" : `<div class="welcome"><span class="eyebrow">Primeira vez por aqui</span><h1>Antes de escrever, <em>quem é você?</em></h1><p>Esse perfil aparece na assinatura das suas matérias e na página de autor.</p></div>`}
-      ${existing ? `<h1>Meu <em>perfil</em></h1>` : ""}
-      <div class="profile-grid">
-        <div class="profile-photo">
-          <img id="profile-image" src="${h(imgUrl(profile.image))}" alt="" width="160" height="160" />
-          <button type="button" class="ghost-button" data-action="profile-photo">Trocar foto</button>
-        </div>
-        <div>
-          <label class="field"><span class="field-label">Nome</span><input name="name" value="${h(profile.name)}" required /></label>
-          <label class="field"><span class="field-label">O que você faz</span><input name="role" value="${h(profile.role)}" placeholder="Ex.: Editora de beleza e música" /></label>
-          <label class="field"><span class="field-label">Bio</span><textarea name="bio" rows="3" placeholder="Duas linhas sobre você.">${h(profile.bio)}</textarea></label>
-          <label class="field"><span class="field-label">Instagram (link)</span><input name="social" value="${h(profile.social ?? "")}" placeholder="https://instagram.com/..." /></label>
-          <p class="field-hint">Endereço da sua página: <code>/autor/${h(me)}/</code></p>
-          <button class="primary-button" type="submit"><span>${existing ? "Salvar perfil" : "Criar perfil e começar"}</span><span aria-hidden="true">→</span></button>
-        </div>
-      </div>
-      <input type="file" id="file-input" accept="image/*" hidden />
-    </form>`;
-  let image = profile.image;
-  view.querySelector("[data-action=profile-photo]").addEventListener("click", async () => {
-    const [file] = await pickFiles();
-    if (!file) return;
-    try {
-      image = await prepareImage(file);
-      document.querySelector("#profile-image").src = imgUrl(image);
-    } catch (error) {
-      toast(error.message, "error");
-    }
-  });
-  document.querySelector("#profile-form").addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const form = new FormData(event.target);
-    const slug = me;
-    const data = { name: form.get("name").trim(), role: form.get("role").trim(), bio: form.get("bio").trim(), image, social: form.get("social").trim() || undefined };
-    const button = event.target.querySelector("button[type=submit]");
-    button.disabled = true;
-    try {
-      const files = [{ path: `${AUTHORS}/${slug}.json`, text: `${JSON.stringify(data, null, 2)}\n` }];
-      if (pending.has(image)) files.push({ path: `public${image}`, base64: bytesToBase64(new Uint8Array(await pending.get(image).arrayBuffer())) });
-      const commit = await gh.commit(`Perfil de autor: ${slug}`, { files });
-      pending.delete(image);
-      authors = [...authors.filter((item) => item.slug !== slug), { slug, ...data }].sort((a, b) => a.name.localeCompare(b.name));
-      watchDeploy(commit.sha, `/autor/${slug}/`);
-      toast(existing ? "Perfil atualizado." : "Perfil criado! Agora é com você.");
-      location.hash = existing ? "#/" : "#/nova";
-    } catch (error) {
-      toast(`Não deu pra salvar: ${error.message}`, "error");
-      button.disabled = false;
-    }
-  });
 }
 
 /* ---------- eventos ---------- */
@@ -1005,8 +922,7 @@ document.addEventListener("click", (event) => {
   if (event.target.closest("[data-action=logout]")) {
     if (dirty && !window.confirm("Sair sem salvar as mudanças?")) return;
     dirty = false;
-    clearSession();
-    window.location.replace(`${base}/entrar/`);
+    supabase.auth.signOut().finally(() => window.location.replace(pages.entrar));
   }
   if (!event.target.closest(".inserter")) view.querySelectorAll(".inserter-menu").forEach((menu) => (menu.hidden = true));
   if (!event.target.closest(".user-menu")) document.querySelector(".user-menu")?.removeAttribute("open");
@@ -1037,39 +953,42 @@ function route() {
   lastHash = hash;
   window.scrollTo({ top: 0 });
   const [, page, slug] = hash.split("/");
-  if (page === "nova") {
-    if (!authors.length) {
-      location.hash = "#/perfil";
-      return;
-    }
-    openEditor(null);
-  } else if (page === "editar" && slug) openEditor(decodeURIComponent(slug));
-  else if (page === "perfil") renderProfile();
+  if (page === "nova") openEditor(null);
+  else if (page === "editar" && slug) openEditor(decodeURIComponent(slug));
   else {
     draft = null;
     renderList();
   }
 }
 
+// Conta criada mas ainda não liberada em public.editores (ver supabase/schema.sql).
+function renderWaiting() {
+  document.querySelector(".panel-nav").hidden = true;
+  view.innerHTML = `<div class="dash-empty"><img src="${config.mark}" alt="" width="60" height="80" /><h2>Quase lá, <em>${h(firstName(userName()))}</em>.</h2><p>Sua conta (${h(user.email)}) foi criada, mas ainda não tem acesso para publicar. Peça para quem administra a Redação liberar seu e-mail.</p><button class="primary-button" type="button" onclick="location.reload()"><span>Já liberaram, tentar de novo</span></button></div>`;
+}
+
 async function start() {
+  const { data } = await supabase.auth.getSession();
+  if (!data.session) {
+    window.location.replace(pages.entrar);
+    return;
+  }
+  user = data.session.user;
+  supabase.auth.onAuthStateChange((event) => {
+    if (event === "SIGNED_OUT") window.location.replace(pages.entrar);
+  });
   renderUser();
   try {
+    const { data: editor, error } = await supabase.rpc("is_editor");
+    if (error) throw error;
+    if (!editor) return renderWaiting();
     await loadAll();
   } catch (error) {
-    if (error.status === 401) {
-      clearSession();
-      window.location.replace(`${base}/entrar/`);
-      return;
-    }
     view.innerHTML = `<div class="dash-empty"><h2>Não deu pra abrir a <em>redação</em>.</h2><p>${h(error.message)}</p><button class="primary-button" type="button" onclick="location.reload()"><span>Tentar de novo</span></button></div>`;
     return;
   }
   window.addEventListener("hashchange", route);
-  if (!authors.some((item) => item.slug === me)) {
-    history.replaceState(null, "", "#/perfil");
-    lastHash = "#/perfil";
-  }
   route();
 }
 
-if (session) start();
+start();

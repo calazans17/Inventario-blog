@@ -41,21 +41,15 @@ export const placements = [
   { value: "guias", label: "Guias & achadinhos (faixa vermelha)" },
 ];
 
-export const authors = (await getCollection("autores")).map(({ id, data }) => ({
-  slug: id,
-  ...data,
-  image: asset(data.image) ?? url("/marca/vermelho.svg"),
-}));
-
 const wordCount = (text = "") => text.split(/\s+/).filter(Boolean).length;
 // Texto dos blocos (para tempo de leitura e busca).
 export const blocksText = (blocos = []) => blocos.map((bloco) => [bloco.texto, bloco.titulo, bloco.pergunta, bloco.resposta, bloco.nome, bloco.legenda, ...(bloco.itens ?? [])].filter(Boolean).join(" ")).join(" ");
 
-const entries = (await getCollection("posts", ({ data }) => !data.rascunho)).map((entry) => {
+// O Supabase só entrega as publicadas (ver src/lib/supabase.js).
+const entries = (await getCollection("posts")).map((entry) => {
   const { data } = entry;
   return {
     slug: entry.id,
-    entry,
     category: data.category,
     title: data.title,
     summary: data.summary,
@@ -63,11 +57,10 @@ const entries = (await getCollection("posts", ({ data }) => !data.rascunho)).map
     imageAlt: data.imageAlt,
     imageCredit: data.imageCredit,
     date: data.date.toISOString(),
-    author: data.author,
     formato: data.formato,
     review: data.review,
     blocos: data.blocos,
-    readingTime: Math.max(1, Math.round(wordCount() / 200)),
+    readingTime: Math.max(1, Math.round(wordCount(blocksText(data.blocos)) / 200)),
     featured: data.onde.includes("principal"),
     trending: data.onde.includes("em-alta"),
     guide: data.onde.includes("guias"),
@@ -79,12 +72,9 @@ const entries = (await getCollection("posts", ({ data }) => !data.rascunho)).map
 export const articles = [...entries].sort((a, b) => new Date(b.date) - new Date(a.date));
 
 export const getCategory = (slug) => categories.find((category) => category.slug === slug);
-const redacao = { slug: "", name: "Redação Inventário", role: "Equipe", bio: "", image: url("/marca/vermelho.svg") };
-export const getAuthor = (slug) => authors.find((author) => author.slug === slug) ?? redacao;
 export const categoryFor = (article) => getCategory(article.category);
 export const articlePath = (article) => url(`/${article.slug}/`);
 export const categoryPath = (category) => url(`/categoria/${category.slug}/`);
-export const authorPath = (author) => url(`/autor/${author.slug}/`);
 export const tagSlug = (tag) => tag.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 export const tagPath = (tag) => url(`/tag/${tagSlug(tag)}/`);
 export const tagEntries = [...new Map(articles.flatMap((article) => article.tags).map((name) => [tagSlug(name), { name, slug: tagSlug(name) }])).values()];

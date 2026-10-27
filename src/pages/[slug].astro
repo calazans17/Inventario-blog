@@ -3,25 +3,22 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import ArticleCard from "../components/ArticleCard.astro";
 import PixelIcon from "../components/PixelIcon.astro";
 import Blocks from "../components/Blocks.astro";
-import { render } from "astro:content";
-import { articles, authorPath, categoryFor, categoryPath, clockTime, formatoLabel, getAuthor, longDate, nota, tagPath, url, articlePath } from "../data/content.js";
+import { articles, categoryFor, categoryPath, clockTime, formatoLabel, longDate, nota, tagPath, url, articlePath } from "../data/content.js";
 
 export function getStaticPaths() {
   return articles.map((article) => ({ params: { slug: article.slug }, props: { article } }));
 }
 
 const { article } = Astro.props;
-const { Content } = await render(article.entry);
 const category = categoryFor(article);
-const author = getAuthor(article.author);
 const sameTopic = (item) => item.category === article.category || item.tags.some((tag) => article.tags.includes(tag));
 const review = article.formato === "review" ? article.review : undefined;
 const stars = review ? Array.from({ length: 5 }, (_, index) => Math.max(0, Math.min(1, review.nota - index))) : [];
-const related =[...articles.filter((item) => item.slug !== article.slug && sameTopic(item)), ...articles.filter((item) => item.slug !== article.slug && !sameTopic(item))].slice(0, 3);
+const related = [...articles.filter((item) => item.slug !== article.slug && sameTopic(item)), ...articles.filter((item) => item.slug !== article.slug && !sameTopic(item))].slice(0, 3);
 const articleSchema = {
   "@context": "https://schema.org",
   "@graph": [
-    { "@type": "NewsArticle", headline: article.title, description: article.seo.description, image: [new URL(article.image, Astro.site).href], datePublished: article.date, dateModified: article.date, author: { "@type": "Person", name: author.name, url: new URL(authorPath(author), Astro.site).href }, publisher: { "@type": "Organization", name: "Somos Inventário", url: new URL(url("/"), Astro.site).href }, mainEntityOfPage: new URL(articlePath(article), Astro.site).href },
+    { "@type": "NewsArticle", headline: article.title, description: article.seo.description, image: [new URL(article.image, Astro.site).href], datePublished: article.date, dateModified: article.date, author: { "@type": "Organization", name: "Somos Inventário", url: new URL(url("/"), Astro.site).href }, publisher: { "@type": "Organization", name: "Somos Inventário", url: new URL(url("/"), Astro.site).href }, mainEntityOfPage: new URL(articlePath(article), Astro.site).href },
     { "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Início", item: new URL(url("/"), Astro.site).href }, { "@type": "ListItem", position: 2, name: category.name, item: new URL(categoryPath(category), Astro.site).href }, { "@type": "ListItem", position: 3, name: article.title }] },
   ],
 };
@@ -36,8 +33,6 @@ const articleSchema = {
         <h1>{article.title}</h1>
         <p class="article-deck">{article.summary}</p>
         <div class="article-byline">
-          <a class="author-avatar" href={authorPath(author)} tabindex="-1" aria-hidden="true"><img src={author.image} alt="" width="48" height="48" /></a>
-          <div class="byline-author"><a class="author-name" href={authorPath(author)}>{author.name}</a><span>{author.role}</span></div>
           <div class="article-published"><time datetime={article.date}>{longDate(article.date)} · {clockTime(article.date)}</time><span>{article.readingTime} min de leitura</span></div>
         </div>
       </header>
@@ -47,7 +42,6 @@ const articleSchema = {
 
     <div class="article-layout container">
       <article class="article-body" id="article-body">
-        <Content />
         <Blocks blocos={article.blocos} />
         {review && (
           <section class="review-box" aria-label="Veredito">

@@ -1,8 +1,7 @@
 import { defineCollection } from "astro:content";
-import { glob } from "astro/loaders";
 import { z } from "astro/zod";
+import { publishedPosts } from "./lib/supabase.js";
 
-// Os arquivos destas pastas são criados e editados pela Redação em /painel.
 const image = z.object({ src: z.string(), alt: z.string().default(""), legenda: z.string().optional() });
 
 // Blocos do corpo da matéria, montados no editor de /painel.
@@ -21,13 +20,23 @@ const bloco = z.discriminatedUnion("tipo", [
 ]);
 
 const posts = defineCollection({
-  loader: glob({ pattern: "**/*.md", base: "./src/content/posts" }),
+  // As postagens ficam no Supabase (tabela posts). O build lê só as publicadas.
+  // No build de produção um erro aqui para o deploy (melhor do que publicar o site vazio);
+  // rodando local, só avisa, para o login e o painel continuarem abrindo.
+  loader: async () => {
+    try {
+      return (await publishedPosts()).map((post) => ({ ...post, id: post.slug }));
+    } catch (error) {
+      if (!import.meta.env.DEV) throw error;
+      console.warn(`[supabase] ${error.message}`);
+      return [];
+    }
+  },
   schema: z.object({
     title: z.string(),
     summary: z.string(),
     date: z.coerce.date(),
     category: z.string(),
-    author: z.string(),
     // Formato da postagem: muda o selo nos cards e alguns detalhes da página.
     formato: z.enum(["materia", "review", "lista", "guia", "entrevista", "opiniao"]).default("materia"),
     image: z.string(),
@@ -41,19 +50,7 @@ const posts = defineCollection({
     review: z.object({ nota: z.number().min(0).max(5), veredito: z.string().optional(), pros: z.array(z.string()).default([]), contras: z.array(z.string()).default([]) }).optional(),
     seoTitle: z.string().optional(),
     seoDescription: z.string().optional(),
-    rascunho: z.boolean().default(false),
   }),
 });
 
-const autores = defineCollection({
-  loader: glob({ pattern: "**/*.json", base: "./src/content/autores" }),
-  schema: z.object({
-    name: z.string(),
-    role: z.string().default(""),
-    bio: z.string().default(""),
-    image: z.string().optional(),
-    social: z.string().optional(),
-  }),
-});
-
-export const collections = { posts, autores };
+export const collections = { posts };

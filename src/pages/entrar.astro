@@ -1,50 +1,39 @@
 ---
 import PanelLayout from "../layouts/PanelLayout.astro";
 import Logo from "../components/Logo.astro";
-import PixelIcon from "../components/PixelIcon.astro";
-import { categories, url } from "../data/content.js";
+import LoginBrand from "../components/LoginBrand.astro";
+import { url } from "../data/content.js";
 ---
 
 <PanelLayout title="Entrar na Redação">
   <main class="login">
-    <section class="login-brand" aria-hidden="true">
-      <img class="login-mark" src={url("/marca/creme.svg")} alt="" width="97" height="130" />
-      <div class="login-brand-copy">
-        <span class="eyebrow">Redação · acesso da equipe</span>
-        <p class="login-brand-title">Toda história boa começa com <em>um rascunho</em>.</p>
-        <div class="login-icons">{categories.map((category) => <PixelIcon name={category.icon} size={28} />)}</div>
-      </div>
-    </section>
+    <LoginBrand />
 
     <section class="login-panel">
       <Logo size="sm" />
       <form class="login-form" id="login-form" novalidate>
         <span class="eyebrow">Bem-vinda, bem-vindo</span>
         <h1>Entrar na <em>Redação</em></h1>
-        <p class="login-lead">Use o seu token do GitHub. Ele fica só neste navegador e serve para publicar direto no site.</p>
+        <p class="login-lead">Use o e-mail e a senha da sua conta da equipe.</p>
+
+        <p class="form-success" id="login-notice" role="status" hidden></p>
 
         <label class="field">
-          <span class="field-label">Token do GitHub</span>
-          <span class="token-input">
-            <input id="token" name="token" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_..." required />
-            <button type="button" class="ghost-button" id="toggle-token" aria-pressed="false">Mostrar</button>
+          <span class="field-label">E-mail</span>
+          <input id="email" name="email" type="email" autocomplete="email" placeholder="voce@email.com" required />
+        </label>
+        <label class="field">
+          <span class="field-label">Senha</span>
+          <span class="password-input">
+            <input id="password" name="password" type="password" autocomplete="current-password" required />
+            <button type="button" class="ghost-button" data-toggle="password" aria-pressed="false">Mostrar</button>
           </span>
         </label>
-        <label class="check"><input type="checkbox" id="remember" checked /> <span>Manter conectado neste aparelho</span></label>
 
         <p class="form-error" id="login-error" role="alert" hidden></p>
         <button class="primary-button" type="submit" id="login-submit"><span>Entrar</span><span aria-hidden="true">→</span></button>
 
-        <details class="login-help">
-          <summary>Como gerar meu token (2 minutos)</summary>
-          <ol>
-            <li>Abra <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer">github.com → Fine-grained tokens ↗</a>.</li>
-            <li>Dê um nome (ex.: <em>Redação Inventário</em>) e escolha a validade.</li>
-            <li>Em <strong>Repository access</strong>, marque <strong>Only select repositories</strong> → <code id="repo-name"></code>.</li>
-            <li>Em <strong>Permissions → Repository</strong>: <strong>Contents: Read and write</strong>. Opcional: <strong>Actions: Read</strong> para ver o status da publicação.</li>
-            <li>Clique em <strong>Generate token</strong>, copie e cole aqui.</li>
-          </ol>
-        </details>
+        <p class="login-switch">Ainda não tem conta? <a href={url("/cadastro/")}>Criar conta</a></p>
       </form>
       <a class="section-link login-back" href={url("/")}><span aria-hidden="true">←</span> Voltar para o site</a>
     </section>
@@ -52,51 +41,46 @@ import { categories, url } from "../data/content.js";
 </PanelLayout>
 
 <script>
-  import { getSession, saveSession, signIn } from "../scripts/session.js";
-
-  const { repo, base } = document.body.dataset;
-  const painel = `${base}/painel/`;
-  if (getSession()) window.location.replace(painel);
+  import { authMessage, currentSession, pages, shake, supabase } from "../scripts/auth.js";
+  import "../scripts/password-toggle.js";
 
   const form = document.querySelector<HTMLFormElement>("#login-form")!;
-  const input = document.querySelector<HTMLInputElement>("#token")!;
-  const toggle = document.querySelector<HTMLButtonElement>("#toggle-token")!;
+  const email = document.querySelector<HTMLInputElement>("#email")!;
+  const password = document.querySelector<HTMLInputElement>("#password")!;
   const error = document.querySelector<HTMLElement>("#login-error")!;
+  const notice = document.querySelector<HTMLElement>("#login-notice")!;
   const submit = document.querySelector<HTMLButtonElement>("#login-submit")!;
-  document.querySelector("#repo-name")!.textContent = repo ?? "";
 
-  toggle.addEventListener("click", () => {
-    const show = input.type === "password";
-    input.type = show ? "text" : "password";
-    toggle.textContent = show ? "Esconder" : "Mostrar";
-    toggle.setAttribute("aria-pressed", String(show));
-  });
+  // Quem chega pelo link de confirmação do e-mail já volta logado.
+  currentSession().then((session) => session && window.location.replace(pages.painel));
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.has("email")) email.value = params.get("email") ?? "";
+  if (params.get("cadastro") === "ok") {
+    notice.textContent = "Conta criada! Mandamos um link de confirmação para o seu e-mail. Depois de confirmar, é só entrar aqui.";
+    notice.hidden = false;
+  }
+
+  const fail = (message: string, field?: HTMLInputElement) => {
+    error.textContent = message;
+    error.hidden = false;
+    field?.focus();
+    shake(form);
+  };
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const token = input.value.trim();
     error.hidden = true;
-    if (!token) {
-      error.textContent = "Cole o token para entrar.";
-      error.hidden = false;
-      input.focus();
-      return;
-    }
+    if (!email.value.trim()) return fail("Digite seu e-mail.", email);
+    if (!password.value) return fail("Digite sua senha.", password);
     submit.disabled = true;
-    submit.firstElementChild!.textContent = "Conferindo…";
-    try {
-      const session = await signIn(token, repo!);
-      saveSession(session, document.querySelector<HTMLInputElement>("#remember")!.checked);
-      submit.firstElementChild!.textContent = `Oi, ${session.name.split(" ")[0]}!`;
-      window.location.replace(painel);
-    } catch (problem) {
-      error.textContent = (problem as Error).message;
-      error.hidden = false;
+    submit.firstElementChild!.textContent = "Entrando…";
+    const { error: problem } = await supabase.auth.signInWithPassword({ email: email.value.trim(), password: password.value });
+    if (problem) {
       submit.disabled = false;
       submit.firstElementChild!.textContent = "Entrar";
-      form.classList.remove("shake");
-      void form.offsetWidth;
-      form.classList.add("shake");
+      return fail(authMessage(problem));
     }
+    window.location.replace(pages.painel);
   });
 </script>

@@ -1,0 +1,15 @@
+---
+// Lado vermelho das telas de login e cadastro.
+import PixelIcon from "./PixelIcon.astro";
+import { categories, url } from "../data/content.js";
+const { title = "Toda história boa começa com <em>um rascunho</em>." } = Astro.props;
+---
+
+<section class="login-brand" aria-hidden="true">
+  <img class="login-mark" src={url("/marca/creme.svg")} alt="" width="97" height="130" />
+  <div class="login-brand-copy">
+    <span class="eyebrow">Redação · acesso da equipe</span>
+    <p class="login-brand-title" set:html={title} />
+    <div class="login-icons">{categories.map((category) => <PixelIcon name={category.icon} size={28} />)}</div>
+  </div>
+</section>

@@ -1,6 +1,6 @@
 # Somos Inventário
 
-Portal editorial estático (Astro 7) publicado no GitHub Pages, com uma Redação própria em `/painel` (login em `/entrar`) para escrever e publicar postagens.
+Portal editorial estático (Astro 7) publicado no GitHub Pages. As postagens, o login da equipe e as imagens ficam no Supabase (plano grátis). A Redação fica em `/painel` (login em `/entrar`, cadastro em `/cadastro`).
 
 ## Rodar localmente
 
@@ -12,9 +12,29 @@ npm run dev        # http://localhost:4321/
 npm run build      # gera dist/
 ```
 
+O painel local grava no mesmo banco do site no ar: o que for publicado ali vai para o site no próximo deploy.
+
+## Supabase
+
+1. No projeto do Supabase: **SQL Editor → New query**, cole `supabase/schema.sql` e rode. Ele cria a tabela `posts`, a lista de quem pode publicar (`editores`), o bucket de imagens `imagens` e as regras de acesso.
+2. **Authentication → URL Configuration**: em Site URL, o endereço do site no GitHub Pages; em Redirect URLs, adicione esse endereço com `/**` no fim e `http://localhost:4321/**`. É para onde o link de confirmação do e-mail leva.
+3. Cada pessoa cria a conta em `/cadastro` e confirma o e-mail. Para liberar quem pode publicar, rode no SQL Editor:
+   ```sql
+   insert into public.editores (user_id) select id from auth.users where email = 'email@da.pessoa';
+   ```
+
+O endereço do projeto e a chave publicável ficam em `src/lib/supabase.js` (são públicos por natureza; quem protege os dados são as regras do `schema.sql`). Para usar outro projeto, defina `PUBLIC_SUPABASE_URL` e `PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
+
 ## Publicação (GitHub Pages)
 
-O workflow `.github/workflows/deploy.yml` faz o build e publica a cada push na `main`, inclusive os commits feitos pela Redação. O endereço e o caminho base (`/nome-do-repo/`) vêm do próprio GitHub Pages, sem configuração manual.
+O workflow `.github/workflows/deploy.yml` faz o build lendo as postagens publicadas no Supabase e publica o site:
+
+- a cada push na `main`;
+- de hora em hora (isso também mantém o projeto grátis do Supabase ativo, que pausa depois de 7 dias sem uso);
+- na hora em que alguém salva na Redação, depois de rodar `supabase/deploy-trigger.sql` com um token do GitHub (passo a passo no arquivo);
+- no botão **Actions → Publicar no GitHub Pages → Run workflow**.
+
+Se o Supabase não responder, o build falha e o site no ar continua como estava.
 
 Primeira vez: no repositório, **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
@@ -22,23 +42,15 @@ Domínio próprio depois: configure em Settings → Pages; o workflow passa a ge
 
 ## Redação (`/entrar` → `/painel`)
 
-O site não tem servidor, então o login é feito com um token do GitHub de cada pessoa. O token fica só no navegador e a Redação fala direto com a API do GitHub: cada salvamento vira **um commit** na `main` (texto + imagens juntos), que dispara o deploy.
-
-Gerar o token (`/entrar` tem o passo a passo):
-
-1. GitHub → Settings → Developer settings → **Fine-grained tokens** → Generate new token.
-2. Repository access: só este repositório.
-3. Permissions → **Contents: Read and write**. Opcional: **Actions: Read**, para a Redação mostrar "Publicando… / No ar ✓".
-
-Só entra quem tem permissão de escrita no repositório. No primeiro acesso a Redação pede o perfil de autor (nome, função, bio e foto, com o avatar do GitHub como padrão), salvo em `src/content/autores/<login>.json`.
+Login por e-mail e senha (Supabase Auth). Qualquer pessoa consegue criar conta, mas só publica quem estiver em `editores`; as outras contas veem um aviso de "aguardando liberação".
 
 ### Escrevendo
 
 - **Formato**: Matéria, Review (nota de 0 a 5, veredito, prós e contras), Lista, Guia, Entrevista ou Opinião. O formato vira um selo nos cards; numa postagem nova, escolher o formato monta um esqueleto de blocos.
 - **Blocos do corpo**: texto (com `**negrito**`, `_itálico_` e `[link](https://...)`), subtítulo, imagem (normal ou larga), galeria, trecho em destaque, caixa de dica, lista/ranking, achadinho (foto, preço, loja e link), vídeo do YouTube, pergunta & resposta e divisor. Dá para inserir entre blocos, mover, duplicar e remover.
-- **Imagens**: escolher ou arrastar. São reduzidas para até 1800 px e convertidas em WebP no navegador antes de subir para `public/uploads/<ano>/`.
+- **Imagens**: escolher ou arrastar. São reduzidas para até 1800 px e convertidas em WebP no navegador antes de subir para o bucket `imagens` do Supabase. Excluir uma postagem (ou tirar uma imagem dela) apaga o arquivo também.
 - Pré-visualização da página, prévia do card e do resultado no Google, contador de leitura, cópia local automática (para não perder texto) e `Ctrl+S`.
-- **Salvar rascunho** grava sem publicar; **Publicar** confere título, chamada, capa, categoria, autor e corpo.
+- **Salvar rascunho** grava sem publicar (numa postagem que está no ar, pede confirmação, porque ela sai do site); **Publicar** confere título, chamada, capa, categoria e corpo.
 
 | "Onde aparece" | Lugar no site |
 | --- | --- |
@@ -59,14 +71,14 @@ As categorias têm ícone em pixel e ficam no código (`src/data/content.js`); a
 
 | Pasta/arquivo | O que tem |
 | --- | --- |
-| `src/content/` | Postagens e autores (editados pela Redação) |
+| `supabase/` | SQL do banco (`schema.sql`) e do deploy automático (`deploy-trigger.sql`) |
+| `src/lib/supabase.js` | Conexão com o Supabase e leitura das postagens no build |
 | `src/content.config.ts` | Campos e blocos aceitos em cada postagem |
 | `src/data/content.js` | Categorias, formatos, lugares da home e helpers de URL |
 | `src/components/Blocks.astro` | Como cada bloco aparece na matéria |
-| `src/pages/entrar.astro`, `src/pages/painel.astro` | Login e Redação |
-| `src/scripts/` | Código da Redação (API do GitHub, sessão, editor) |
-| `public/uploads/` | Imagens enviadas pela Redação |
+| `src/pages/entrar.astro`, `cadastro.astro`, `painel.astro` | Login, cadastro e Redação |
+| `src/scripts/` | Código da Redação (login e editor) |
 
-Rotas: `/`, `/{slug}/`, `/categoria/{slug}/`, `/tag/{slug}/`, `/autor/{slug}/`, `/busca/?q=termo`, `/entrar/`, `/painel/` (`/admin/` redireciona). `sitemap.xml` e `robots.txt` são gerados no build.
+Rotas: `/`, `/{slug}/`, `/categoria/{slug}/`, `/tag/{slug}/`, `/busca/?q=termo`, `/entrar/`, `/cadastro/`, `/painel/` (`/admin/` redireciona). `sitemap.xml` e `robots.txt` são gerados no build.
 
 A newsletter ainda é só visual.

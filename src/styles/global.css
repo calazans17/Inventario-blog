@@ -39,7 +39,7 @@ h1 em, h2 em, h3 em { color: var(--red); font-style: italic; }
 .pixel-icon { flex: none; }
 
 /* Rótulos com espaçamento largo, como na identidade */
-.eyebrow, .category-label, .section-link, .topline, .archive-count, .breadcrumbs, .card-meta time, .button-link, .hero-read, .footer-bottom, .form-note, .universe-count, .author-role, .article-published span, .article-cover figcaption span {
+.eyebrow, .category-label, .section-link, .topline, .archive-count, .breadcrumbs, .card-meta time, .button-link, .hero-read, .footer-bottom, .form-note, .universe-count, .article-published span, .article-cover figcaption span {
   font-family: var(--sans); font-size: 12px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase;
 }
 .eyebrow { display: block; margin-bottom: 12px; color: var(--slate); }
@@ -54,17 +54,18 @@ a.category-label:hover { color: var(--red-dark); }
 /* Logo */
 .logo { display: inline-flex; align-items: flex-end; gap: .32em; color: var(--ink); font-size: var(--logo-size); line-height: 1; flex: none; }
 .logo-mark { width: auto; height: calc(var(--logo-size) * 1.7); }
+.logo--sm .logo-mark { height: calc(var(--logo-size) * 1.3); }
 .logo-word { display: flex; flex-direction: column; padding-bottom: .02em; font-family: var(--serif); letter-spacing: -.025em; }
 .logo-somos { margin-bottom: -.12em; padding-left: .5em; font-size: .52em; }
 .logo-inventario { font-size: 1em; line-height: .9; }
-.logo--sm { --logo-size: 30px; }
+.logo--sm { --logo-size: 24px; }
 .logo--md { --logo-size: 42px; }
 .logo--dark { color: var(--cream); }
 
 /* Topo e cabeçalho */
 .topline { display: flex; justify-content: space-between; gap: 16px; padding: 9px var(--gutter); color: var(--cream); background: var(--red); font-size: 11px; }
 .site-header { position: relative; z-index: 10; border-bottom: 1px solid var(--line); background: var(--cream); }
-.header-inner { display: flex; align-items: center; gap: 32px; max-width: calc(1240px + 2 * var(--gutter)); min-height: 92px; margin-inline: auto; padding: 14px var(--gutter); }
+.header-inner { display: flex; align-items: center; gap: 32px; max-width: calc(1240px + 2 * var(--gutter)); min-height: 72px; margin-inline: auto; padding: 10px var(--gutter); }
 .main-nav { display: flex; align-items: center; gap: clamp(16px, 2.2vw, 30px); margin-left: auto; }
 .nav-category { position: relative; display: inline-flex; align-items: center; gap: 8px; padding: 8px 0; font-size: 15px; font-weight: 500; white-space: nowrap; }
 .nav-category .pixel-icon { color: var(--red); }
@@ -190,11 +191,6 @@ a.category-label:hover { color: var(--red-dark); }
 .archive-icon { width: clamp(64px, 10vw, 112px); height: auto; color: var(--red); }
 .archive-count, .archive-heading .archive-count { display: block; margin-top: 20px; color: var(--slate); font-size: 11px; }
 .empty-state { padding: 40px 0; color: var(--muted); font-size: 17px; }
-.author-profile { display: grid; grid-template-columns: 140px minmax(0, 1fr); align-items: center; gap: 32px; max-width: 900px; padding: 40px 0 56px; }
-.author-profile > img { width: 140px; height: 140px; border-radius: 50%; object-fit: cover; }
-.author-profile h1 { font-size: clamp(42px, 6vw, 72px); line-height: 1; }
-.author-role { display: block; margin-top: 10px; color: var(--red); font-size: 11px; }
-.author-profile p { max-width: 58ch; margin: 14px 0; color: var(--muted); font-size: 17px; }
 .archive-search { display: flex; align-items: center; gap: 14px; max-width: 680px; margin-top: 30px; padding: 0 22px; border: 1.5px solid var(--ink); border-radius: 999px; background: var(--cream); }
 .archive-search:focus-within { border-color: var(--red); box-shadow: 0 0 0 3px #b23b2f26; }
 .archive-search .search-icon { color: var(--red); }
@@ -212,12 +208,7 @@ a.category-label:hover { color: var(--red-dark); }
 .article-heading h1 { font-size: clamp(38px, 5.6vw, 70px); line-height: 1.04; letter-spacing: -.01em; }
 .article-deck { margin: 20px 0 28px; color: var(--muted); font-size: clamp(18px, 2vw, 22px); line-height: 1.5; }
 .article-byline { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 16px; padding-top: 22px; border-top: 1px solid var(--line); }
-.author-avatar img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; }
-.byline-author { display: flex; flex-direction: column; }
-.author-name { font-weight: 600; }
-.author-name:hover { color: var(--red); }
-.byline-author span { color: var(--muted); font-size: 14px; }
-.article-published { display: flex; flex-direction: column; gap: 2px; margin-left: auto; color: var(--muted); font-size: 14px; text-align: right; }
+.article-published { display: flex; flex-direction: column; gap: 2px; color: var(--muted); font-size: 14px; }
 .article-published span { color: var(--slate); font-size: 11px; }
 .article-cover { margin-top: 8px; }
 .article-cover img { width: 100%; height: auto; max-height: 680px; aspect-ratio: 16 / 9; border-radius: var(--radius); object-fit: cover; }
@@ -261,8 +252,8 @@ a.category-label:hover { color: var(--red-dark); }
 @media (max-width: 720px) {
   .topline-tagline { display: none; }
   .topline { justify-content: center; font-size: 10px; letter-spacing: .14em; }
-  .header-inner { gap: 12px; min-height: 76px; padding-block: 10px; }
-  .logo--sm { --logo-size: 24px; }
+  .header-inner { gap: 12px; min-height: 62px; padding-block: 8px; }
+  .logo--sm { --logo-size: 20px; }
   .search-trigger { width: 44px; padding: 0; justify-content: center; }
   .search-text, .search-trigger kbd { display: none; }
   .lead-layout { padding-top: 24px; padding-bottom: 48px; }
@@ -287,10 +278,7 @@ a.category-label:hover { color: var(--red-dark); }
   .footer-links > div:first-child .eyebrow { grid-column: 1 / -1; }
   .archive-heading { padding: 28px 0 32px; margin-bottom: 32px; }
   .archive-heading--icon { grid-template-columns: minmax(0, 1fr); }
-  .author-profile { grid-template-columns: minmax(0, 1fr); gap: 20px; padding-bottom: 40px; }
-  .author-profile > img { width: 96px; height: 96px; }
   .article-heading { padding-top: 28px; }
-  .article-published { margin-left: 0; text-align: left; flex-basis: 100%; }
   .article-cover { padding-inline: 0; }
   .article-cover img { border-radius: 0; aspect-ratio: 4 / 3; }
   .article-cover figcaption { padding-inline: var(--gutter); }

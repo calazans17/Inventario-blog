@@ -1,0 +1,91 @@
+---
+import PanelLayout from "../layouts/PanelLayout.astro";
+import Logo from "../components/Logo.astro";
+import LoginBrand from "../components/LoginBrand.astro";
+import { url } from "../data/content.js";
+---
+
+<PanelLayout title="Criar conta na Redação">
+  <main class="login">
+    <LoginBrand title="Seu lugar no <em>inventário</em> começa aqui." />
+
+    <section class="login-panel">
+      <Logo size="sm" />
+      <form class="login-form" id="signup-form" novalidate>
+        <span class="eyebrow">Primeira vez por aqui</span>
+        <h1>Criar <em>conta</em></h1>
+        <p class="login-lead">Depois de confirmar o e-mail, a equipe libera seu acesso para publicar.</p>
+
+        <label class="field">
+          <span class="field-label">Nome</span>
+          <input id="name" name="name" autocomplete="name" placeholder="Como te chamam" required />
+        </label>
+        <label class="field">
+          <span class="field-label">E-mail</span>
+          <input id="email" name="email" type="email" autocomplete="email" placeholder="voce@email.com" required />
+        </label>
+        <label class="field">
+          <span class="field-label">Senha <small>mínimo de 8 caracteres</small></span>
+          <span class="password-input">
+            <input id="password" name="password" type="password" autocomplete="new-password" minlength="8" required />
+            <button type="button" class="ghost-button" data-toggle="password" aria-pressed="false">Mostrar</button>
+          </span>
+        </label>
+        <label class="field">
+          <span class="field-label">Repita a senha</span>
+          <input id="confirm" name="confirm" type="password" autocomplete="new-password" required />
+        </label>
+
+        <p class="form-error" id="signup-error" role="alert" hidden></p>
+        <button class="primary-button" type="submit" id="signup-submit"><span>Criar conta</span><span aria-hidden="true">→</span></button>
+
+        <p class="login-switch">Já tem conta? <a href={url("/entrar/")}>Entrar</a></p>
+      </form>
+      <a class="section-link login-back" href={url("/")}><span aria-hidden="true">←</span> Voltar para o site</a>
+    </section>
+  </main>
+</PanelLayout>
+
+<script>
+  import { authMessage, currentSession, pages, shake, supabase } from "../scripts/auth.js";
+  import "../scripts/password-toggle.js";
+
+  currentSession().then((session) => session && window.location.replace(pages.painel));
+
+  const form = document.querySelector<HTMLFormElement>("#signup-form")!;
+  const field = (id: string) => document.querySelector<HTMLInputElement>(`#${id}`)!;
+  const [name, email, password, confirm] = ["name", "email", "password", "confirm"].map(field);
+  const error = document.querySelector<HTMLElement>("#signup-error")!;
+  const submit = document.querySelector<HTMLButtonElement>("#signup-submit")!;
+
+  const fail = (message: string, input?: HTMLInputElement) => {
+    error.textContent = message;
+    error.hidden = false;
+    input?.focus();
+    shake(form);
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    error.hidden = true;
+    if (!name.value.trim()) return fail("Diga seu nome.", name);
+    if (!/^\S+@\S+\.\S+$/.test(email.value.trim())) return fail("Digite um e-mail válido.", email);
+    if (password.value.length < 8) return fail("A senha precisa ter pelo menos 8 caracteres.", password);
+    if (password.value !== confirm.value) return fail("As senhas não são iguais.", confirm);
+    submit.disabled = true;
+    submit.firstElementChild!.textContent = "Criando…";
+    const { data, error: problem } = await supabase.auth.signUp({
+      email: email.value.trim(),
+      password: password.value,
+      options: { data: { nome: name.value.trim() }, emailRedirectTo: new URL(pages.entrar, window.location.origin).href },
+    });
+    if (problem) {
+      submit.disabled = false;
+      submit.firstElementChild!.textContent = "Criar conta";
+      return fail(authMessage(problem));
+    }
+    // Com confirmação de e-mail ligada (padrão do Supabase) ainda não há sessão.
+    if (data.session) window.location.replace(pages.painel);
+    else window.location.replace(`${pages.entrar}?cadastro=ok&email=${encodeURIComponent(email.value.trim())}`);
+  });
+</script>

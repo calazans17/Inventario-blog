@@ -1,11 +1,9 @@
 ---
-// Base das páginas internas (login e Redação): sem cabeçalho do site e fora do Google.
+// Base das páginas internas (login, cadastro e Redação): sem cabeçalho do site e fora do Google.
 import "../styles/global.css";
 import "../styles/painel.css";
 import { url } from "../data/content.js";
 const { title } = Astro.props;
-// No Actions vem do próprio GitHub; CMS_REPO permite sobrescrever (ex.: rodando localmente).
-const repo = process.env.CMS_REPO || process.env.GITHUB_REPOSITORY || "calazans17/Inventario-blog";
 ---
 
 <!doctype html>
@@ -21,7 +19,7 @@ const repo = process.env.CMS_REPO || process.env.GITHUB_REPOSITORY || "calazans1
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Jost:wght@400;500;600&display=swap" rel="stylesheet" />
     <title>{title} — Somos Inventário</title>
   </head>
-  <body class="panel-body" data-repo={repo} data-base={url("")}>
+  <body class="panel-body" data-base={url("")}>
     <slot />
   </body>
 </html>

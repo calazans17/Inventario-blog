@@ -55,15 +55,13 @@ code { padding: 2px 6px; border-radius: 6px; background: var(--beige); font-size
 .login-panel { display: flex; flex-direction: column; justify-content: center; gap: 36px; width: 100%; max-width: 520px; margin: 0 auto; padding: 48px var(--gutter); }
 .login-form h1 { font-size: clamp(40px, 4.5vw, 56px); line-height: 1; }
 .login-lead { margin: 14px 0 28px; color: var(--muted); font-size: 17px; }
-.token-input { display: flex; gap: 8px; }
-.token-input input { flex: 1; font-family: ui-monospace, "Cascadia Code", Menlo, monospace; font-size: 14px; }
+.password-input { display: flex; gap: 8px; }
+.password-input input { flex: 1; min-width: 0; }
+.login-switch { margin: 20px 0 0; color: var(--muted); text-align: center; }
+.login-switch a { color: var(--red); font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
+.form-success { margin: 0 0 18px; padding: 12px 16px; border-radius: 10px; color: #1f5c3a; background: #d6eedd; font-size: 15px; }
 .login-form .primary-button { width: 100%; margin-top: 14px; }
 .form-error { margin: 14px 0 0; padding: 12px 14px; border-radius: 10px; color: var(--red-dark); background: #f7dcd6; font-size: 14px; }
-.login-help { margin-top: 24px; padding: 16px 18px; border-radius: var(--radius); background: var(--beige); font-size: 15px; }
-.login-help summary { color: var(--red); font-weight: 500; cursor: pointer; }
-.login-help ol { margin: 14px 0 0; padding-left: 1.2em; }
-.login-help li { margin-bottom: 8px; }
-.login-help a { color: var(--red); text-decoration: underline; text-underline-offset: 3px; }
 .login-back { align-self: flex-start; }
 .shake { animation: shake .4s; }
 @keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
@@ -80,18 +78,11 @@ code { padding: 2px 6px; border-radius: 6px; background: var(--beige); font-size
 .user-menu { position: relative; }
 .user-menu summary { display: flex; align-items: center; gap: 10px; padding: 4px 12px 4px 4px; border: 1px solid var(--line); border-radius: 999px; cursor: pointer; list-style: none; font-weight: 500; }
 .user-menu summary::-webkit-details-marker { display: none; }
-.user-menu img { width: 34px; height: 34px; border-radius: 50%; }
+.user-initial { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; color: var(--cream); background: var(--red); font-family: var(--serif); font-size: 18px; }
+.user-menu-email { padding: 6px 12px 10px; border-bottom: 1px solid var(--line); margin-bottom: 4px; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
 .user-menu-list { position: absolute; top: calc(100% + 8px); right: 0; display: flex; flex-direction: column; min-width: 220px; padding: 8px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--cream); box-shadow: 0 16px 40px #221a1922; }
 .user-menu-list a, .user-menu-list button { padding: 10px 12px; border: 0; border-radius: 8px; color: var(--ink); background: none; font: inherit; font-size: 15px; text-align: left; cursor: pointer; }
 .user-menu-list a:hover, .user-menu-list button:hover { background: var(--beige); }
-.deploy-pill { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; padding: 7px 14px; border-radius: 999px; background: var(--beige); font-size: 13px; font-weight: 500; }
-.deploy-pill + .panel-user { margin-left: 0; }
-.deploy-pill a { color: var(--red); text-decoration: underline; }
-.deploy-pill small { color: var(--muted); font-weight: 400; }
-.deploy-pill[data-state="done"] { color: #1f5c3a; background: #d6eedd; }
-.deploy-pill[data-state="fail"] { color: var(--red-dark); background: #f7dcd6; }
-.pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--red); animation: pulse 1.2s infinite; }
-@keyframes pulse { 50% { opacity: .25; transform: scale(.7); } }
 .panel-main { width: 100%; max-width: calc(1320px + 2 * var(--gutter)); margin: 0 auto; padding: 32px var(--gutter) 96px; }
 .panel-loading { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 120px 0; color: var(--muted); }
 .panel-loading img { width: auto; height: 64px; animation: hop 1.2s ease-in-out infinite; }
@@ -251,13 +242,6 @@ code { padding: 2px 6px; border-radius: 6px; background: var(--beige); font-size
 .preview-label { padding: 10px 16px; color: var(--cream); background: var(--ink); font-size: 11px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; }
 
 /* Perfil */
-.profile { max-width: 900px; }
-.profile > h1, .welcome h1 { font-size: clamp(38px, 5vw, 60px); line-height: 1.02; margin-bottom: 28px; }
-.welcome p { margin: -14px 0 32px; color: var(--muted); font-size: 18px; }
-.profile-grid { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 36px; }
-.profile-photo { display: flex; flex-direction: column; align-items: center; gap: 14px; }
-.profile-photo img { width: 160px; height: 160px; border-radius: 50%; object-fit: cover; background: var(--beige); }
-.profile .primary-button { margin-top: 12px; }
 
 @media (max-width: 1080px) {
   .editor-grid { grid-template-columns: minmax(0, 1fr); }
@@ -273,8 +257,7 @@ code { padding: 2px 6px; border-radius: 6px; background: var(--beige); font-size
   .panel-top { gap: 10px; }
   .panel-brand span, .panel-nav a:not(.panel-nav-cta), .user-menu summary span { display: none; }
   .user-menu summary { padding: 3px; }
-  .deploy-pill { position: fixed; right: 16px; bottom: 16px; left: 16px; justify-content: center; margin: 0; }
-  .dash-hero { flex-direction: column; align-items: stretch; }
+    .dash-hero { flex-direction: column; align-items: stretch; }
   .post-thumb { width: 64px; height: 64px; }
   .post-row-copy strong { font-size: 18px; white-space: normal; }
   .editor-bar { top: 64px; }
@@ -282,7 +265,5 @@ code { padding: 2px 6px; border-radius: 6px; background: var(--beige); font-size
   .editor-bar-actions > * { flex: 1 1 auto; }
   .format-picker { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .format-option small { display: none; }
-  .field-row, .review-edit, .profile-grid, .product-edit { grid-template-columns: minmax(0, 1fr); }
-  .product-edit .image-drop { max-width: 160px; }
-  .profile-photo { align-items: flex-start; }
-}
+  .field-row, .review-edit,   .product-edit .image-drop { max-width: 160px; }
+  }

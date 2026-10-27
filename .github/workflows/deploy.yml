@@ -1,9 +1,15 @@
 name: Publicar no GitHub Pages
 
-# Roda a cada push na main, inclusive os commits feitos pelo painel /admin.
+# As postagens ficam no Supabase, então o site é refeito: a cada push na main,
+# quando o Supabase avisa que alguém salvou (supabase/deploy-trigger.sql),
+# de hora em hora (garantia, e mantém o projeto grátis do Supabase ativo) e no botão "Run workflow".
 on:
   push:
     branches: [main]
+  repository_dispatch:
+    types: [publicar]
+  schedule:
+    - cron: "17 * * * *"
   workflow_dispatch:
 
 permissions:
