@@ -11,6 +11,8 @@ const view = document.querySelector("#view");
 const RESERVED = ["busca", "categoria", "tag", "entrar", "cadastro", "painel", "admin", "marca", "uploads", "404", "sitemap", "robots"];
 
 let posts = [];
+// Visualizações por postagem (supabase/visualizacoes.sql): slug → { total, ultimos_7, hoje }.
+let views = new Map();
 let draft = null;
 let dirty = false;
 let showPreview = false;
@@ -31,6 +33,8 @@ const toLocalInput = (iso) => {
 };
 const dateLabel = (iso) => new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 const nota = (value) => Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const count = (value = 0) => Number(value).toLocaleString("pt-BR");
+const viewsOf = (slug) => views.get(slug) ?? { total: 0, ultimos_7: 0, hoje: 0 };
 const words = (text = "") => text.split(/\s+/).filter(Boolean).length;
 const debounce = (fn, wait) => {
   let timer;
@@ -113,6 +117,10 @@ async function loadAll() {
   const { data, error } = await supabase.from("posts").select("*");
   if (error) throw error;
   posts = sortPosts(data.map((row) => ({ slug: row.slug, data: fromRow(row) })));
+  // Sem o SQL das visualizações rodado, o painel abre do mesmo jeito, só sem os números.
+  const summary = await supabase.rpc("resumo_visualizacoes");
+  if (summary.error) console.warn("Visualizações indisponíveis:", summary.error.message);
+  views = new Map((summary.data ?? []).map((row) => [row.post_slug, row]));
 }
 
 /* ---------- imagens no Supabase ---------- */
@@ -163,11 +171,14 @@ function renderList() {
   const published = posts.filter((post) => !post.data.rascunho);
   const drafts = posts.filter((post) => post.data.rascunho);
   const normalized = slugify(listQuery).replace(/-/g, " ");
+  const weekViews = [...views.values()].reduce((total, item) => total + Number(item.ultimos_7), 0);
   const visible = posts.filter((post) => {
     if (listFilter === "publicadas" && post.data.rascunho) return false;
     if (listFilter === "rascunhos" && !post.data.rascunho) return false;
+    if (listFilter === "mais-vistas" && post.data.rascunho) return false;
     return !normalized || slugify(`${post.data.title} ${post.data.summary} ${(post.data.tags ?? []).join(" ")}`).replace(/-/g, " ").includes(normalized);
   });
+  if (listFilter === "mais-vistas") visible.sort((a, b) => viewsOf(b.slug).total - viewsOf(a.slug).total);
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
 
@@ -182,12 +193,13 @@ function renderList() {
     <section class="dash-stats" aria-label="Resumo">
       <div><strong>${published.length}</strong><span>no ar</span></div>
       <div><strong>${drafts.length}</strong><span>rascunhos</span></div>
+      <div title="Visitas nas matérias nos últimos 7 dias"><strong>${count(weekViews)}</strong><span>visualizações · 7 dias</span></div>
       <div class="dash-cats">${config.categories.map((item) => `<span title="${h(item.name)}">${item.icon}<b>${posts.filter((post) => post.data.category === item.slug).length}</b></span>`).join("")}</div>
     </section>
     <section class="dash-list">
       <div class="dash-toolbar">
         <div class="segmented" role="tablist">
-          ${[["todas", "Todas"], ["publicadas", "No ar"], ["rascunhos", "Rascunhos"]].map(([value, label]) => `<button type="button" role="tab" aria-selected="${listFilter === value}" data-action="filter" data-value="${value}">${label}</button>`).join("")}
+          ${[["todas", "Todas"], ["publicadas", "No ar"], ["rascunhos", "Rascunhos"], ["mais-vistas", "Mais vistas"]].map(([value, label]) => `<button type="button" role="tab" aria-selected="${listFilter === value}" data-action="filter" data-value="${value}">${label}</button>`).join("")}
         </div>
         <label class="dash-search"><span class="search-icon" aria-hidden="true"></span><input type="search" id="list-search" placeholder="Buscar postagem" value="${h(listQuery)}" /></label>
       </div>
@@ -213,7 +225,7 @@ function postRow(post) {
         <span class="post-row-copy">
           <span class="post-row-meta">${cat ? `<span class="category-label">${cat.icon}${h(cat.name)}</span>` : ""}<span class="chip">${h(formatoLabel(data.formato))}${data.formato === "review" && data.review ? ` ★ ${nota(data.review.nota)}` : ""}</span>${data.rascunho ? `<span class="chip chip--draft">Rascunho</span>` : `<span class="chip chip--live">No ar</span>`}</span>
           <strong>${h(data.title || "Sem título")}</strong>
-          <small>${data.date ? dateLabel(data.date) : ""}</small>
+          <small>${data.date ? dateLabel(data.date) : ""}${data.rascunho ? "" : ` · ${viewsLabel(post.slug)}`}</small>
         </span>
       </a>
       <div class="post-row-actions">
@@ -221,6 +233,11 @@ function postRow(post) {
         <button type="button" class="icon-button icon-button--danger" data-action="delete-post" data-slug="${h(post.slug)}" title="Excluir">✕</button>
       </div>
     </li>`;
+}
+
+function viewsLabel(slug) {
+  const { total, ultimos_7: week } = viewsOf(slug);
+  return `${count(total)} ${Number(total) === 1 ? "visualização" : "visualizações"}${Number(week) ? ` (${count(week)} nos últimos 7 dias)` : ""}`;
 }
 
 const emptyList = () => posts.length
@@ -371,6 +388,7 @@ function renderEditor() {
       </div>
 
       <aside class="editor-side">
+        ${draft.existing && !draft.rascunho ? viewsCard() : ""}
         <section class="side-card">
           <span class="field-label">Categoria</span>
           <div class="cat-picker">${config.categories.map((item) => `<button type="button" data-action="category" data-value="${item.slug}" aria-pressed="${draft.category === item.slug}">${item.icon}${h(item.name)}</button>`).join("")}</div>
@@ -408,6 +426,16 @@ function renderEditor() {
     <input type="file" id="file-input" accept="image/*" hidden />`;
   autosize();
   refreshLive();
+}
+
+function viewsCard() {
+  const { total, ultimos_7: week, hoje } = viewsOf(draft.slug);
+  return `
+    <section class="side-card views-card" aria-label="Visualizações">
+      <span class="field-label">Visualizações</span>
+      <div class="views-grid"><div><strong>${count(total)}</strong><small>no total</small></div><div><strong>${count(week)}</strong><small>7 dias</small></div><div><strong>${count(hoje)}</strong><small>hoje</small></div></div>
+      <small class="field-hint">Só a equipe vê. Conta uma visita por pessoa por dia.</small>
+    </section>`;
 }
 
 function inserter(index) {

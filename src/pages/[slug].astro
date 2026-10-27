@@ -25,7 +25,7 @@ const articleSchema = {
 ---
 
 <BaseLayout title={`${article.seo.title} — Somos Inventário`} description={article.seo.description} image={article.image} article={article} schema={articleSchema}>
-  <main id="main-content" class="article-shell">
+  <main id="main-content" class="article-shell" data-slug={article.slug}>
     <div class="container">
       <nav class="breadcrumbs" aria-label="Você está em"><a href={url("/")}>Início</a><span aria-hidden="true">/</span><a href={categoryPath(category)}>{category.name}</a></nav>
       <header class="article-heading">
@@ -74,6 +74,27 @@ const articleSchema = {
 </BaseLayout>
 
 <script>
+  import { SUPABASE_KEY, SUPABASE_URL } from "../lib/supabase.js";
+
+  // Conta a visita no Supabase (supabase/visualizacoes.sql): uma por navegador, por matéria, por dia.
+  // Não conta rodando local nem quem está logado na Redação.
+  const slug = document.querySelector<HTMLElement>("[data-slug]")?.dataset.slug;
+  const local = ["localhost", "127.0.0.1"].includes(location.hostname);
+  try {
+    const today = new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
+    const key = `inventario:visto:${slug}`;
+    const team = Object.keys(localStorage).some((name) => name.startsWith("sb-") && name.endsWith("-auth-token"));
+    if (slug && !local && !team && !navigator.webdriver && localStorage.getItem(key) !== today) {
+      localStorage.setItem(key, today);
+      fetch(`${SUPABASE_URL}/rest/v1/rpc/registrar_visualizacao`, {
+        method: "POST",
+        keepalive: true,
+        headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ p_slug: slug }),
+      }).catch(() => {});
+    }
+  } catch { /* storage bloqueado: não conta */ }
+
   const shareButton = document.querySelector("#share-button");
   shareButton?.addEventListener("click", async () => {
     if (navigator.share) {

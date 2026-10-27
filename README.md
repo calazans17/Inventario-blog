@@ -18,7 +18,8 @@ O painel local grava no mesmo banco do site no ar: o que for publicado ali vai p
 
 1. No projeto do Supabase: **SQL Editor → New query**, cole `supabase/schema.sql` e rode. Ele cria a tabela `posts`, a lista de quem pode publicar (`editores`), o bucket de imagens `imagens` e as regras de acesso.
 2. **Authentication → URL Configuration**: em Site URL, o endereço do site no GitHub Pages; em Redirect URLs, adicione esse endereço com `/**` no fim e `http://localhost:4321/**`. É para onde o link de confirmação do e-mail leva.
-3. Cada pessoa cria a conta em `/cadastro` e confirma o e-mail. Para liberar quem pode publicar, rode no SQL Editor:
+3. Para contar as visualizações das matérias, rode também `supabase/visualizacoes.sql`. Os números aparecem só para a equipe, no `/painel` (uma visita por navegador, por matéria, por dia; não conta rodando local nem quem está logado na Redação).
+4. Cada pessoa cria a conta em `/cadastro` e confirma o e-mail. Para liberar quem pode publicar, rode no SQL Editor:
    ```sql
    insert into public.editores (user_id) select id from auth.users where email = 'email@da.pessoa';
    ```
@@ -71,7 +72,7 @@ As categorias têm ícone em pixel e ficam no código (`src/data/content.js`); a
 
 | Pasta/arquivo | O que tem |
 | --- | --- |
-| `supabase/` | SQL do banco (`schema.sql`) e do deploy automático (`deploy-trigger.sql`) |
+| `supabase/` | SQL do banco (`schema.sql`), das visualizações (`visualizacoes.sql`) e do deploy automático (`deploy-trigger.sql`) |
 | `src/lib/supabase.js` | Conexão com o Supabase e leitura das postagens no build |
 | `src/content.config.ts` | Campos e blocos aceitos em cada postagem |
 | `src/data/content.js` | Categorias, formatos, lugares da home e helpers de URL |

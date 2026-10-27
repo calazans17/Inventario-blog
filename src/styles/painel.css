@@ -97,6 +97,10 @@ code { padding: 2px 6px; border-radius: 6px; background: var(--beige); font-size
 .dash-stats > div { display: flex; flex-direction: column; gap: 4px; padding: 18px 20px; border-radius: var(--radius); background: var(--beige); }
 .dash-stats strong { font-family: var(--serif); font-size: 40px; font-weight: 400; line-height: 1; }
 .dash-stats span { color: var(--slate); font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; }
+.views-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 10px 0 6px; }
+.views-grid div { display: flex; flex-direction: column; padding: 10px 12px; border-radius: 10px; background: var(--beige); }
+.views-grid strong { font-family: var(--serif); font-size: 26px; font-weight: 400; line-height: 1.1; }
+.views-grid small { color: var(--slate); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; }
 .dash-stats .dash-cats { flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-around; gap: 12px; }
 .dash-cats span { display: inline-flex; align-items: center; gap: 8px; color: var(--red); letter-spacing: 0; }
 .dash-cats b { color: var(--ink); font-family: var(--serif); font-size: 26px; font-weight: 400; }
