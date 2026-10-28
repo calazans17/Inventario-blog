@@ -1,7 +1,8 @@
 ---
 import Logo from "./Logo.astro";
 import PixelIcon from "./PixelIcon.astro";
-import { categories, categoryPath, url } from "../data/content.js";
+import { categories, categoryPath, site, url } from "../data/content.js";
+const social = Object.entries(site.social).filter(([, link]) => link);
 ---
 
 <footer class="site-footer" id="sobre">
@@ -12,9 +13,9 @@ import { categories, categoryPath, url } from "../data/content.js";
     </div>
     <div class="footer-links">
       <div><span class="eyebrow">Assuntos</span>{categories.map((category) => <a href={categoryPath(category)}><PixelIcon name={category.icon} size={14} />{category.name}</a>)}</div>
-      <div><span class="eyebrow">Somos</span><a href={url("/#ultimas")}>Últimas</a><a href={url("/busca/")}>Arquivo</a><a href="mailto:oi@somosinventario.com.br">Contato</a><a href={url("/#newsletter")}>Newsletter</a></div>
-      <div><span class="eyebrow">Em outros lugares</span><a href="https://instagram.com/" target="_blank" rel="noreferrer">Instagram ↗</a><a href="https://tiktok.com/" target="_blank" rel="noreferrer">TikTok ↗</a><a href="https://youtube.com/" target="_blank" rel="noreferrer">YouTube ↗</a></div>
+      <div><span class="eyebrow">Somos</span><a href={url("/sobre/")}>Sobre nós</a><a href={url("/contato/")}>Contato</a><a href={url("/busca/")}>Arquivo</a><a href={url("/#newsletter")}>Newsletter</a>{social.map(([name, link]) => <a href={link} target="_blank" rel="noreferrer">{name} ↗</a>)}</div>
+      <div><span class="eyebrow">Transparência</span><a href={url("/privacidade/")}>Política de Privacidade</a><a href={url("/privacidade/#cookies")}>Cookies</a><button type="button" class="footer-button" data-cookie-prefs>Preferências de cookies</button></div>
     </div>
-    <div class="footer-bottom"><span>© 2026 Somos Inventário</span><a href="#top">Voltar ao topo ↑</a></div>
+    <div class="footer-bottom"><span>© {new Date().getFullYear()} {site.name}</span><a href="#top">Voltar ao topo ↑</a></div>
   </div>
 </footer>

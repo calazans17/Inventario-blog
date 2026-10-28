@@ -1,0 +1,84 @@
+---
+// Política de Privacidade (LGPD e exigência do Google AdSense). Ao mudar o que o site
+// coleta (novo serviço, formulário, ferramenta de estatística), atualize este texto
+// e a data em site.privacyUpdated (src/data/content.js).
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { longDate, site, url } from "../data/content.js";
+
+const updated = longDate(`${site.privacyUpdated}T12:00:00-03:00`);
+---
+
+<BaseLayout title={`Política de Privacidade — ${site.name}`} description="Como o Somos Inventário trata dados pessoais e usa cookies, de acordo com a LGPD.">
+  <main id="main-content" class="archive-page container">
+    <nav class="breadcrumbs" aria-label="Você está em"><a href={url("/")}>Início</a><span aria-hidden="true">/</span><span>Privacidade</span></nav>
+    <header class="archive-heading"><span class="eyebrow">Transparência</span><h1>Política de <em>Privacidade</em></h1><p>Última atualização: {updated}.</p></header>
+
+    <div class="article-body legal-body">
+      <p>Esta política explica quais dados pessoais o {site.name} trata, para quê, com quem compartilha e como você exerce seus direitos, de acordo com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018, a LGPD).</p>
+
+      <h2>1. Quem é o responsável</h2>
+      <p>O controlador dos dados é o {site.name}. Para qualquer assunto sobre privacidade, inclusive como encarregado pelo tratamento de dados (art. 41 da LGPD), o contato é <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
+
+      <h2>2. Quais dados tratamos</h2>
+      <h3>Leitores</h3>
+      <p>Para ler o site você não precisa se cadastrar, e não pedimos nome, e-mail ou documento. Ainda assim, alguns dados são tratados automaticamente:</p>
+      <ul>
+        <li><strong>Dados técnicos de acesso</strong>, como endereço IP, navegador, sistema e página acessada. Eles chegam aos serviços que hospedam e entregam o site (veja a seção 5) e são usados para entregar as páginas e manter a segurança.</li>
+        <li><strong>Contagem de visualizações.</strong> Quando você abre uma matéria, somamos uma visita ao total diário daquela matéria. Guardamos só o número, sem nenhum dado que identifique você. Para não contar a mesma pessoa várias vezes no dia, seu navegador anota localmente que a matéria já foi vista hoje.</li>
+        <li><strong>Sua escolha sobre cookies</strong>, guardada no seu navegador.</li>
+        <li><strong>Publicidade.</strong> Quando houver anúncios do Google AdSense, o Google e seus parceiros podem usar cookies, como descrito na seção 4.</li>
+      </ul>
+      <h3>Equipe da Redação</h3>
+      <p>Quem cria conta para publicar no site informa nome, e-mail e senha. A senha é guardada de forma criptografada pelo serviço de login. Esses dados são usados só para dar acesso à área de publicação.</p>
+      <h3>Contato por e-mail</h3>
+      <p>Se você nos escreve, usamos seu e-mail e o que você mandou só para responder e resolver o assunto.</p>
+
+      <h2 id="cookies">3. Cookies e armazenamento no navegador</h2>
+      <p>Cookies e o armazenamento local do navegador são pequenos registros que o site guarda no seu aparelho. Usamos:</p>
+      <ul>
+        <li><strong>Essenciais</strong>, sempre ativos: a sua escolha sobre cookies, o controle de "matéria já vista hoje" do contador de visualizações e, para a equipe, a sessão de login da Redação.</li>
+        <li><strong>Publicidade</strong>, de terceiros e só quando houver anúncios: cookies do Google e de seus parceiros para exibir anúncios e medir resultados. Com o seu consentimento ("Aceitar"), os anúncios podem ser personalizados com base nas suas visitas a este e a outros sites. Se você escolhe "Só os essenciais", os anúncios continuam aparecendo, mas não personalizados.</li>
+      </ul>
+      <p>Você pode mudar sua escolha quando quiser em <button type="button" class="inline-button" data-cookie-prefs>Preferências de cookies</button>, que também fica no rodapé de todas as páginas. Também pode apagar ou bloquear cookies nas configurações do seu navegador.</p>
+
+      <h2>4. Publicidade (Google AdSense)</h2>
+      <p>Este site pode exibir anúncios do Google AdSense. Sobre eles:</p>
+      <ul>
+        <li>Fornecedores terceiros, incluindo o Google, usam cookies para exibir anúncios com base em visitas anteriores a este e a outros sites.</li>
+        <li>Você pode desativar a publicidade personalizada nas <a href="https://adssettings.google.com/" target="_blank" rel="noreferrer">Configurações de anúncios do Google</a> e conhecer outras opções em <a href="https://www.aboutads.info/" target="_blank" rel="noreferrer">aboutads.info</a>.</li>
+        <li>Saiba como o Google usa dados de sites parceiros em <a href="https://policies.google.com/technologies/partner-sites?hl=pt-BR" target="_blank" rel="noreferrer">policies.google.com/technologies/partner-sites</a>.</li>
+      </ul>
+
+      <h2>5. Com quem compartilhamos</h2>
+      <p>Não vendemos dados pessoais. Para o site funcionar, usamos estes serviços, que tratam dados em nosso nome ou como controladores independentes:</p>
+      <ul>
+        <li><strong>GitHub (GitHub Pages)</strong>: hospedagem das páginas do site.</li>
+        <li><strong>Supabase</strong>: banco de dados das matérias e da contagem de visualizações, login da equipe e armazenamento de imagens.</li>
+        <li><strong>Google</strong>: fontes tipográficas (Google Fonts), vídeos incorporados do YouTube em modo de privacidade reforçada, que só grava cookies se você der play, e anúncios (Google AdSense), quando ativos.</li>
+      </ul>
+      <p>Esses serviços podem guardar dados fora do Brasil, principalmente nos Estados Unidos. A transferência internacional segue o art. 33 da LGPD e as garantias contratuais oferecidas por esses fornecedores.</p>
+
+      <h2>6. Por que podemos tratar esses dados (bases legais)</h2>
+      <ul>
+        <li><strong>Consentimento</strong> (art. 7º, I): cookies de publicidade personalizada.</li>
+        <li><strong>Legítimo interesse</strong> (art. 7º, IX): entregar e proteger o site e contar visualizações de forma agregada, sem identificar ninguém.</li>
+        <li><strong>Execução de contrato ou procedimentos relacionados</strong> (art. 7º, V): contas da equipe da Redação.</li>
+      </ul>
+
+      <h2>7. Por quanto tempo guardamos</h2>
+      <p>A contagem de visualizações é guardada só como números agregados, sem dados pessoais. Os dados da conta da equipe ficam guardados enquanto a conta existir. E-mails de contato ficam guardados pelo tempo necessário para resolver o assunto. Os registros técnicos dos fornecedores seguem os prazos de cada um.</p>
+
+      <h2>8. Seus direitos</h2>
+      <p>Pela LGPD (art. 18), você pode pedir: confirmação de que tratamos seus dados; acesso a eles; correção; anonimização, bloqueio ou eliminação do que for desnecessário; portabilidade; informação sobre com quem compartilhamos; e revogação do consentimento. Basta escrever para <a href={`mailto:${site.email}`}>{site.email}</a> com "Privacidade" no assunto. Você também pode reclamar à Autoridade Nacional de Proteção de Dados (<a href="https://www.gov.br/anpd" target="_blank" rel="noreferrer">ANPD</a>).</p>
+
+      <h2>9. Segurança</h2>
+      <p>O site usa conexão criptografada (HTTPS). O acesso à área de publicação exige login, e regras no banco de dados impedem que visitantes leiam rascunhos ou números internos.</p>
+
+      <h2>10. Crianças e adolescentes</h2>
+      <p>O site não pede cadastro de leitores e não coleta de propósito dados de crianças. Se você é responsável e acredita que uma criança nos enviou dados pessoais, escreva para o contato acima que nós apagamos.</p>
+
+      <h2>11. Mudanças nesta política</h2>
+      <p>Podemos atualizar esta política quando o site mudar. A data no topo indica a última revisão.</p>
+    </div>
+  </main>
+</BaseLayout>

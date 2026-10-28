@@ -1,0 +1,65 @@
+---
+// Aviso de cookies (LGPD) e carregamento do Google AdSense conforme a escolha.
+// "Aceitar" libera anúncios personalizados; "Só os essenciais" mantém anúncios, mas não personalizados.
+// O botão [data-cookie-prefs] (rodapé) reabre o aviso para mudar a escolha.
+import { site, url } from "../data/content.js";
+---
+
+<div class="cookie-consent" id="cookie-consent" role="dialog" aria-labelledby="cookie-title" aria-describedby="cookie-text" data-adsense={site.adsenseClient} hidden>
+  <div class="cookie-copy">
+    <strong id="cookie-title">A gente usa cookies</strong>
+    <p id="cookie-text">Alguns são essenciais para o site funcionar. Outros, de parceiros como o Google, servem para mostrar anúncios e medir o que funciona. Você escolhe. Detalhes na <a href={url("/privacidade/#cookies")}>Política de Privacidade</a>.</p>
+  </div>
+  <div class="cookie-actions">
+    <button type="button" class="cookie-button cookie-button--ghost" data-consent="essenciais">Só os essenciais</button>
+    <button type="button" class="cookie-button" data-consent="todos">Aceitar</button>
+  </div>
+</div>
+
+<script>
+  const KEY = "inventario:cookies";
+  const banner = document.querySelector<HTMLElement>("#cookie-consent")!;
+  const client = banner.dataset.adsense;
+
+  const read = () => {
+    try { return localStorage.getItem(KEY); } catch { return null; }
+  };
+
+  let adsLoaded = false;
+  function loadAds(choice: string) {
+    if (!client || adsLoaded) return;
+    adsLoaded = true;
+    const queue = ((window as any).adsbygoogle = (window as any).adsbygoogle || []);
+    // Sem consentimento, o Google mostra só anúncios não personalizados.
+    if (choice !== "todos") queue.requestNonPersonalizedAds = 1;
+    const script = document.createElement("script");
+    script.async = true;
+    script.crossOrigin = "anonymous";
+    script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(client)}`;
+    document.head.append(script);
+  }
+
+  function choose(choice: string) {
+    const previous = read();
+    try { localStorage.setItem(KEY, choice); } catch { /* storage bloqueado: vale só nesta página */ }
+    banner.hidden = true;
+    // Trocar de ideia depois de os anúncios carregarem só vale com a página recarregada.
+    if (adsLoaded && previous && previous !== choice) location.reload();
+    else loadAds(choice);
+  }
+
+  const saved = read();
+  if (saved) loadAds(saved);
+  else banner.hidden = false;
+
+  banner.addEventListener("click", (event) => {
+    const button = (event.target as HTMLElement).closest<HTMLElement>("[data-consent]");
+    if (button) choose(button.dataset.consent!);
+  });
+  for (const button of document.querySelectorAll("[data-cookie-prefs]")) {
+    button.addEventListener("click", () => {
+      banner.hidden = false;
+      banner.querySelector<HTMLElement>(`[data-consent="${read() ?? "todos"}"]`)?.focus();
+    });
+  }
+</script>

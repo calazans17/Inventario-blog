@@ -6,6 +6,18 @@ export const url = (path) => `${BASE}${path}`;
 // Imagens enviadas pelo painel ficam como "/uploads/..."; URLs externas passam direto.
 export const asset = (src) => (src?.startsWith("/") && !src.startsWith("//") ? url(src) : src);
 
+// Dados institucionais: rodapé, Contato, Política de Privacidade e anúncios.
+export const site = {
+  name: "Somos Inventário",
+  email: "contato@somosinventario.com.br",
+  // Links completos (ex.: "https://instagram.com/somosinventario"). Vazio esconde do rodapé.
+  social: { Instagram: "", TikTok: "", YouTube: "" },
+  // ID de publicador do Google AdSense ("ca-pub-..."). Vazio = site sem anúncios.
+  adsenseClient: import.meta.env.PUBLIC_ADSENSE_CLIENT || "",
+  // Data da última revisão da Política de Privacidade.
+  privacyUpdated: "2026-10-28",
+};
+
 // As categorias seguem a identidade visual e cada uma tem seu ícone em pixel,
 // por isso ficam no código. A Redação (/painel) lê esta lista no build.
 export const categories = [

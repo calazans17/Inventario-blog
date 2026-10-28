@@ -2,7 +2,8 @@
 import "../styles/global.css";
 import SiteHeader from "../components/SiteHeader.astro";
 import SiteFooter from "../components/SiteFooter.astro";
-import { url } from "../data/content.js";
+import CookieConsent from "../components/CookieConsent.astro";
+import { site, url } from "../data/content.js";
 const {
   title = "Somos Inventário — mais do que categorias, é o seu universo",
   description = "Beleza, música, games, pokémon e achadinhos. Mais do que categorias: é o seu universo.",
@@ -39,6 +40,7 @@ const structuredData = schema ?? {
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Jost:wght@400;500;600&display=swap" rel="stylesheet" />
+    {site.adsenseClient && <meta name="google-adsense-account" content={site.adsenseClient} />}
     <meta property="og:site_name" content="Somos Inventário" />
     <meta property="og:type" content={article ? "article" : "website"} />
     <meta property="og:locale" content="pt_BR" />
@@ -59,5 +61,6 @@ const structuredData = schema ?? {
     <SiteHeader currentPath={currentPath} />
     <slot />
     <SiteFooter />
+    <CookieConsent />
   </body>
 </html>

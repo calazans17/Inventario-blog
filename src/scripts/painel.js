@@ -8,7 +8,7 @@ const { base } = document.body.dataset;
 const config = JSON.parse(document.querySelector("#panel-config").textContent);
 let user = null;
 const view = document.querySelector("#view");
-const RESERVED = ["busca", "categoria", "tag", "entrar", "cadastro", "painel", "admin", "marca", "uploads", "404", "sitemap", "robots"];
+const RESERVED = ["busca", "categoria", "tag", "entrar", "cadastro", "painel", "admin", "sobre", "contato", "privacidade", "ads", "marca", "uploads", "404", "sitemap", "robots"];
 
 let posts = [];
 // Visualizações por postagem (supabase/visualizacoes.sql): slug → { total, ultimos_7, hoje }.

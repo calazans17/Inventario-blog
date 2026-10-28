@@ -1,0 +1,31 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { site, url } from "../data/content.js";
+
+const social = Object.entries(site.social).filter(([, link]) => link);
+const schema = { "@context": "https://schema.org", "@type": "ContactPage", name: `Contato — ${site.name}`, url: new URL(url("/contato/"), Astro.site).href };
+---
+
+<BaseLayout title={`Contato — ${site.name}`} description="Fale com a equipe do Somos Inventário: pautas, parcerias, correções e privacidade." schema={schema}>
+  <main id="main-content" class="archive-page container">
+    <nav class="breadcrumbs" aria-label="Você está em"><a href={url("/")}>Início</a><span aria-hidden="true">/</span><span>Contato</span></nav>
+    <header class="archive-heading"><span class="eyebrow">A conversa não para</span><h1>Fala com a <em>gente</em>.</h1><p>Respondemos por e-mail, geralmente em até 3 dias úteis.</p></header>
+
+    <div class="article-body legal-body">
+      <p class="contact-email"><a href={`mailto:${site.email}`}>{site.email}</a></p>
+
+      <h2>Sobre o que escrever</h2>
+      <ul>
+        <li><strong>Pautas e sugestões:</strong> um jogo, disco, produto ou achado que merece aparecer aqui.</li>
+        <li><strong>Parcerias e publicidade:</strong> conteúdo patrocinado, envio de produtos e anúncios. Todo conteúdo patrocinado é sinalizado.</li>
+        <li><strong>Correções:</strong> mande o link da matéria e o que está errado.</li>
+        <li><strong>Privacidade e dados pessoais (LGPD):</strong> pedidos de acesso, correção ou exclusão de dados. Coloque "Privacidade" no assunto. Saiba mais na <a href={url("/privacidade/")}>Política de Privacidade</a>.</li>
+      </ul>
+
+      {social.length > 0 && <>
+        <h2>Nas redes</h2>
+        <ul>{social.map(([name, link]) => <li><a href={link} target="_blank" rel="noreferrer">{name} ↗</a></li>)}</ul>
+      </>}
+    </div>
+  </main>
+</BaseLayout>

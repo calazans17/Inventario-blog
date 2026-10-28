@@ -41,6 +41,13 @@ Primeira vez: no repositório, **Settings → Pages → Build and deployment →
 
 Domínio próprio depois: configure em Settings → Pages; o workflow passa a gerar o site na raiz automaticamente.
 
+## AdSense e LGPD
+
+- Páginas `/sobre/`, `/contato/` e `/privacidade/` (Política de Privacidade), com links no rodapé.
+- Aviso de cookies em todas as páginas do site: "Aceitar" libera anúncios personalizados; "Só os essenciais" mantém anúncios não personalizados. O rodapé tem "Preferências de cookies" para mudar a escolha.
+- E-mail de contato, redes sociais e o ID do AdSense ficam em `site`, no topo de `src/data/content.js`. Com o ID preenchido (`ca-pub-...`, ou a variável `PUBLIC_ADSENSE_CLIENT`), o site passa a carregar o AdSense, a tag de verificação e o `/ads.txt`. O `ads.txt` só é aceito pelo Google na raiz de um domínio próprio.
+- Mudou o que o site coleta (novo serviço, formulário, estatística)? Atualize `src/pages/privacidade.astro` e `site.privacyUpdated`.
+
 ## Redação (`/entrar` → `/painel`)
 
 Login por e-mail e senha (Supabase Auth). Qualquer pessoa consegue criar conta, mas só publica quem estiver em `editores`; as outras contas veem um aviso de "aguardando liberação".

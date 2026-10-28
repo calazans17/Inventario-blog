@@ -1,0 +1,34 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PixelIcon from "../components/PixelIcon.astro";
+import { categories, categoryPath, site, url } from "../data/content.js";
+
+const schema = { "@context": "https://schema.org", "@type": "AboutPage", name: `Sobre — ${site.name}`, url: new URL(url("/sobre/"), Astro.site).href };
+---
+
+<BaseLayout title={`Sobre nós — ${site.name}`} description="Quem somos, o que publicamos e como trabalhamos no Somos Inventário." schema={schema}>
+  <main id="main-content" class="archive-page container">
+    <nav class="breadcrumbs" aria-label="Você está em"><a href={url("/")}>Início</a><span aria-hidden="true">/</span><span>Sobre</span></nav>
+    <header class="archive-heading"><span class="eyebrow">Somos Inventário</span><h1>Mais do que categorias. É o seu <em>universo</em>.</h1></header>
+
+    <div class="article-body legal-body">
+      <p>O {site.name} é um portal independente sobre as coisas que a gente coleciona ao longo da vida: os produtos que viram rotina, as músicas que marcam fases, os jogos que a gente nunca esqueceu e os achados que valem a pena contar para alguém.</p>
+
+      <h2>O que você encontra aqui</h2>
+      <ul class="legal-topics">
+        {categories.map((category) => <li><a href={categoryPath(category)}><PixelIcon name={category.icon} size={16} />{category.name}</a> — {category.description}</li>)}
+      </ul>
+
+      <h2>Como a gente trabalha</h2>
+      <ul>
+        <li><strong>Opinião própria.</strong> Reviews e listas refletem o que a equipe testou, jogou, ouviu ou usou. Marcas não aprovam textos antes da publicação.</li>
+        <li><strong>Publicidade sinalizada.</strong> O site pode exibir anúncios e, quando houver conteúdo patrocinado ou produto recebido de marca, isso fica escrito na própria matéria.</li>
+        <li><strong>Correções.</strong> Errou, corrigiu. Se você encontrou uma informação errada, conta pra gente pelo <a href={url("/contato/")}>contato</a>.</li>
+        <li><strong>Sua privacidade.</strong> O site não pede cadastro de leitores. O que coletamos e por quê está na <a href={url("/privacidade/")}>Política de Privacidade</a>.</li>
+      </ul>
+
+      <h2>Fale com a gente</h2>
+      <p>Sugestão de pauta, parceria ou só um oi: <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
+    </div>
+  </main>
+</BaseLayout>
