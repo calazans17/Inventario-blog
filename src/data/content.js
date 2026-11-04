@@ -69,6 +69,7 @@ const entries = (await getCollection("posts")).map((entry) => {
     imageAlt: data.imageAlt,
     imageCredit: data.imageCredit,
     date: data.date.toISOString(),
+    updated: new Date(Math.max(data.date, data.updated_at ?? data.date)).toISOString(),
     formato: data.formato,
     review: data.review,
     blocos: data.blocos,

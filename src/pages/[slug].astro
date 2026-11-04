@@ -18,7 +18,7 @@ const related = [...articles.filter((item) => item.slug !== article.slug && same
 const articleSchema = {
   "@context": "https://schema.org",
   "@graph": [
-    { "@type": "NewsArticle", headline: article.title, description: article.seo.description, image: [new URL(article.image, Astro.site).href], datePublished: article.date, dateModified: article.date, author: { "@type": "Organization", name: "Somos Inventário", url: new URL(url("/"), Astro.site).href }, publisher: { "@type": "Organization", name: "Somos Inventário", url: new URL(url("/"), Astro.site).href }, mainEntityOfPage: new URL(articlePath(article), Astro.site).href },
+    { "@type": "NewsArticle", headline: article.title, description: article.seo.description, image: [new URL(article.image, Astro.site).href], datePublished: article.date, dateModified: article.updated, author: { "@type": "Organization", name: "Somos Inventário", url: new URL(url("/"), Astro.site).href }, publisher: { "@type": "Organization", name: "Somos Inventário", url: new URL(url("/"), Astro.site).href }, mainEntityOfPage: new URL(articlePath(article), Astro.site).href },
     { "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Início", item: new URL(url("/"), Astro.site).href }, { "@type": "ListItem", position: 2, name: category.name, item: new URL(categoryPath(category), Astro.site).href }, { "@type": "ListItem", position: 3, name: article.title }] },
   ],
 };

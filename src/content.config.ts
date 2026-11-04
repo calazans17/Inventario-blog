@@ -36,6 +36,8 @@ const posts = defineCollection({
     title: z.string(),
     summary: z.string(),
     date: z.coerce.date(),
+    // Gravado pelo painel a cada salvamento.
+    updated_at: z.coerce.date().optional(),
     category: z.string(),
     // Formato da postagem: muda o selo nos cards e alguns detalhes da página.
     formato: z.enum(["materia", "review", "lista", "guia", "entrevista", "opiniao"]).default("materia"),
