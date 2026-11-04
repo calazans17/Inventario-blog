@@ -94,9 +94,9 @@ button.button-link { border: 0; cursor: pointer; }
 .card-title a { background-image: linear-gradient(currentColor, currentColor); background-position: 0 100%; background-repeat: no-repeat; background-size: 0 1px; transition: background-size .3s; }
 .card-title a:hover { background-size: 100% 1px; }
 .card-summary { margin: 10px 0 0; color: var(--muted); font-size: 16px; line-height: 1.55; }
-.article-card--hero .card-image-link { aspect-ratio: 16 / 10; }
+.article-card--hero .card-image-link { aspect-ratio: 16 / 9; }
 .article-card--hero .card-copy { padding-top: 24px; }
-.article-card--hero .card-title { max-width: 18ch; font-size: clamp(36px, 4.4vw, 60px); line-height: 1.02; letter-spacing: -.01em; }
+.article-card--hero .card-title { max-width: 20ch; font-size: clamp(30px, 3.2vw, 46px); line-height: 1.02; letter-spacing: -.01em; }
 .article-card--hero .card-summary { max-width: 60ch; margin-top: 16px; font-size: 19px; }
 .hero-read { display: inline-flex; align-items: center; gap: 10px; margin-top: 22px; padding: 12px 22px; border-radius: 999px; color: var(--cream); background: var(--red); }
 .hero-read:hover { background: var(--red-dark); }
@@ -345,7 +345,7 @@ button.button-link { border: 0; cursor: pointer; }
   .archive-heading--icon { grid-template-columns: minmax(0, 1fr); }
   .article-heading { padding-top: 28px; }
   .article-cover { padding-inline: 0; }
-  .article-cover img { border-radius: 0; aspect-ratio: 4 / 3; }
+  .article-cover img { border-radius: 0; aspect-ratio: 16 / 9; }
   .article-cover figcaption { padding-inline: var(--gutter); }
   .article-layout { padding-top: 36px; padding-bottom: 48px; }
   .article-body { font-size: 18px; }

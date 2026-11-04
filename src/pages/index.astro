@@ -6,7 +6,9 @@ import { articles, articlePath, categories, categoryFor, categoryPath, shortDate
 
 const lead = articles.find((article) => article.featured) ?? articles[0];
 const others = articles.filter((article) => article !== lead);
-const trending = others.filter((article) => article.trending).slice(0, 4);
+// "Em alta" mostra as marcadas e completa com as mais recentes até 4.
+const marked = others.filter((article) => article.trending);
+const trending = [...marked, ...others.filter((article) => !article.trending)].slice(0, 4);
 const guides = others.filter((article) => article.guide).slice(0, 3);
 const latest = others.filter((article) => !guides.includes(article)).slice(0, 6);
 const countFor = (category) => articles.filter((article) => article.category === category.slug).length;
