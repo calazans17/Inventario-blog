@@ -102,6 +102,11 @@ button.button-link { border: 0; cursor: pointer; }
 .hero-read:hover { background: var(--red-dark); }
 
 .lead-layout--solo { grid-template-columns: minmax(0, 1fr); }
+/* Sem "Em alta" ao lado, o destaque fica com imagem e texto lado a lado (no computador). */
+@media (min-width: 1081px) {
+  .lead-layout--solo .article-card--hero { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); align-items: center; gap: 48px; }
+  .lead-layout--solo .article-card--hero .card-copy { padding-top: 0; }
+}
 .lead-rail { align-self: start; padding: 26px 28px 10px; border-radius: var(--radius); background: var(--beige); }
 .rail-heading { display: flex; align-items: center; justify-content: space-between; padding-bottom: 14px; border-bottom: 1px solid var(--line); color: var(--red); }
 .rail-heading .eyebrow { margin: 0; }
