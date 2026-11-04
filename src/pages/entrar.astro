@@ -16,8 +16,6 @@ import { url } from "../data/content.js";
         <h1>Entrar na <em>Redação</em></h1>
         <p class="login-lead">Use o e-mail e a senha da sua conta da equipe.</p>
 
-        <p class="form-success" id="login-notice" role="status" hidden></p>
-
         <label class="field">
           <span class="field-label">E-mail</span>
           <input id="email" name="email" type="email" autocomplete="email" placeholder="voce@email.com" required />
@@ -33,7 +31,6 @@ import { url } from "../data/content.js";
         <p class="form-error" id="login-error" role="alert" hidden></p>
         <button class="primary-button" type="submit" id="login-submit"><span>Entrar</span><span aria-hidden="true">→</span></button>
 
-        <p class="login-switch">Ainda não tem conta? <a href={url("/cadastro/")}>Criar conta</a></p>
       </form>
       <a class="section-link login-back" href={url("/")}><span aria-hidden="true">←</span> Voltar para o site</a>
     </section>
@@ -48,18 +45,13 @@ import { url } from "../data/content.js";
   const email = document.querySelector<HTMLInputElement>("#email")!;
   const password = document.querySelector<HTMLInputElement>("#password")!;
   const error = document.querySelector<HTMLElement>("#login-error")!;
-  const notice = document.querySelector<HTMLElement>("#login-notice")!;
   const submit = document.querySelector<HTMLButtonElement>("#login-submit")!;
 
-  // Quem chega pelo link de confirmação do e-mail já volta logado.
+  // Quem já está logado vai direto para a Redação.
   currentSession().then((session) => session && window.location.replace(pages.painel));
 
   const params = new URLSearchParams(window.location.search);
   if (params.has("email")) email.value = params.get("email") ?? "";
-  if (params.get("cadastro") === "ok") {
-    notice.textContent = "Conta criada! Mandamos um link de confirmação para o seu e-mail. Depois de confirmar, é só entrar aqui.";
-    notice.hidden = false;
-  }
 
   const fail = (message: string, field?: HTMLInputElement) => {
     error.textContent = message;

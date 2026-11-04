@@ -1,6 +1,6 @@
 # Somos Inventário
 
-Portal editorial estático (Astro 7) publicado no GitHub Pages. As postagens, o login da equipe e as imagens ficam no Supabase (plano grátis). A Redação fica em `/painel` (login em `/entrar`, cadastro em `/cadastro`).
+Portal editorial estático (Astro 7) publicado no GitHub Pages. As postagens, o login da equipe e as imagens ficam no Supabase (plano grátis). A Redação fica em `/painel` (login em `/entrar`). Leitores podem assinar a newsletter só com o e-mail.
 
 ## Rodar localmente
 
@@ -17,9 +17,11 @@ O painel local grava no mesmo banco do site no ar: o que for publicado ali vai p
 ## Supabase
 
 1. No projeto do Supabase: **SQL Editor → New query**, cole `supabase/schema.sql` e rode. Ele cria a tabela `posts`, a lista de quem pode publicar (`editores`), o bucket de imagens `imagens` e as regras de acesso.
-2. **Authentication → URL Configuration**: em Site URL, o endereço do site no GitHub Pages; em Redirect URLs, adicione esse endereço com `/**` no fim e `http://localhost:4321/**`. É para onde o link de confirmação do e-mail leva.
+2. **Authentication → Sign In / Providers**: desligue **Allow new users to sign up**. Só a equipe tem conta, e quem cria é a administração.
+   **Authentication → URL Configuration**: em Site URL, o endereço do site; em Redirect URLs, esse endereço com `/**` no fim e `http://localhost:4321/**` (é para onde levam os links de e-mail do login, como o de trocar a senha).
 3. Para contar as visualizações das matérias, rode também `supabase/visualizacoes.sql`. Os números aparecem só para a equipe, no `/painel` (uma visita por navegador, por matéria, por dia; não conta rodando local nem quem está logado na Redação).
-4. Cada pessoa cria a conta em `/cadastro` e confirma o e-mail. Para liberar quem pode publicar, rode no SQL Editor:
+4. Para a newsletter, rode `supabase/newsletter.sql`. O formulário da home grava o e-mail em `inscritos`; a lista e o descadastro estão no fim do arquivo. O envio dos e-mails ainda não está ligado.
+5. Conta nova da equipe: **Authentication → Users → Add user** (marque "Auto Confirm User"). Para liberar a publicação, rode no SQL Editor:
    ```sql
    insert into public.editores (user_id) select id from auth.users where email = 'email@da.pessoa';
    ```
@@ -50,7 +52,7 @@ Domínio próprio depois: configure em Settings → Pages; o workflow passa a ge
 
 ## Redação (`/entrar` → `/painel`)
 
-Login por e-mail e senha (Supabase Auth). Qualquer pessoa consegue criar conta, mas só publica quem estiver em `editores`; as outras contas veem um aviso de "aguardando liberação".
+Login por e-mail e senha (Supabase Auth). Não há cadastro pelo site: só publica quem tiver conta criada no Supabase e estiver em `editores`.
 
 ### Escrevendo
 
@@ -79,14 +81,14 @@ As categorias têm ícone em pixel e ficam no código (`src/data/content.js`); a
 
 | Pasta/arquivo | O que tem |
 | --- | --- |
-| `supabase/` | SQL do banco (`schema.sql`), das visualizações (`visualizacoes.sql`) e do deploy automático (`deploy-trigger.sql`) |
+| `supabase/` | SQL do banco (`schema.sql`), das visualizações (`visualizacoes.sql`), da newsletter (`newsletter.sql`) e do deploy automático (`deploy-trigger.sql`) |
 | `src/lib/supabase.js` | Conexão com o Supabase e leitura das postagens no build |
 | `src/content.config.ts` | Campos e blocos aceitos em cada postagem |
 | `src/data/content.js` | Categorias, formatos, lugares da home e helpers de URL |
 | `src/components/Blocks.astro` | Como cada bloco aparece na matéria |
-| `src/pages/entrar.astro`, `cadastro.astro`, `painel.astro` | Login, cadastro e Redação |
+| `src/pages/entrar.astro`, `painel.astro` | Login e Redação |
 | `src/scripts/` | Código da Redação (login e editor) |
 
-Rotas: `/`, `/{slug}/`, `/categoria/{slug}/`, `/tag/{slug}/`, `/busca/?q=termo`, `/entrar/`, `/cadastro/`, `/painel/` (`/admin/` redireciona). `sitemap.xml` e `robots.txt` são gerados no build.
+Rotas: `/`, `/{slug}/`, `/categoria/{slug}/`, `/tag/{slug}/`, `/busca/?q=termo`, `/entrar/`, `/painel/` (`/admin/` redireciona). `sitemap.xml` e `robots.txt` são gerados no build.
 
-A newsletter ainda é só visual.
+A newsletter já guarda os e-mails (`supabase/newsletter.sql`), mas o envio ainda não está ligado.

@@ -6,7 +6,7 @@ import { SUPABASE_KEY, SUPABASE_URL } from "../lib/supabase.js";
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const base = document.body.dataset.base ?? "";
-export const pages = { entrar: `${base}/entrar/`, cadastro: `${base}/cadastro/`, painel: `${base}/painel/` };
+export const pages = { entrar: `${base}/entrar/`, painel: `${base}/painel/` };
 
 // Mensagens do Supabase em português, pelo código do erro.
 const messages = {

@@ -989,10 +989,10 @@ function route() {
   }
 }
 
-// Conta criada mas ainda não liberada em public.editores (ver supabase/schema.sql).
+// Conta que existe no Supabase mas não está em public.editores (ver supabase/schema.sql).
 function renderWaiting() {
   document.querySelector(".panel-nav").hidden = true;
-  view.innerHTML = `<div class="dash-empty"><img src="${config.mark}" alt="" width="60" height="80" /><h2>Quase lá, <em>${h(firstName(userName()))}</em>.</h2><p>Sua conta (${h(user.email)}) foi criada, mas ainda não tem acesso para publicar. Peça para quem administra a Redação liberar seu e-mail.</p><button class="primary-button" type="button" onclick="location.reload()"><span>Já liberaram, tentar de novo</span></button></div>`;
+  view.innerHTML = `<div class="dash-empty"><img src="${config.mark}" alt="" width="60" height="80" /><h2>Quase lá, <em>${h(firstName(userName()))}</em>.</h2><p>Sua conta (${h(user.email)}) não tem acesso para publicar. Peça para quem administra a Redação liberar seu e-mail.</p><button class="primary-button" type="button" onclick="location.reload()"><span>Já liberaram, tentar de novo</span></button></div>`;
 }
 
 async function start() {

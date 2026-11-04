@@ -69,18 +69,44 @@ const countFor = (category) => articles.filter((article) => article.category ===
     <section class="newsletter container" id="newsletter" aria-labelledby="newsletter-title">
       <div class="newsletter-box">
         <div class="newsletter-icons" aria-hidden="true">{categories.map((category) => <PixelIcon name={category.icon} size={26} />)}</div>
-        <div class="newsletter-copy"><span class="eyebrow">Carta do inventário · em breve</span><h2 id="newsletter-title">Uma seleção boa <em>vale um inbox</em>.</h2><p>As histórias que ficaram na cabeça, direto no seu e-mail.</p></div>
-        <form class="newsletter-form" id="newsletter-form"><label class="sr-only" for="newsletter-email">Seu e-mail</label><input id="newsletter-email" type="email" placeholder="seu melhor e-mail" autocomplete="email" required /><button type="submit">Quero receber</button><span class="form-note" id="newsletter-note" aria-live="polite">Sem spam. Só repertório.</span></form>
+        <div class="newsletter-copy"><span class="eyebrow">Carta do inventário</span><h2 id="newsletter-title">Uma seleção boa <em>vale um inbox</em>.</h2><p>As histórias que ficaram na cabeça, direto no seu e-mail.</p></div>
+        <form class="newsletter-form" id="newsletter-form"><label class="sr-only" for="newsletter-email">Seu e-mail</label><input id="newsletter-email" type="email" placeholder="seu melhor e-mail" autocomplete="email" required /><button type="submit">Quero receber</button><span class="form-note" id="newsletter-note" aria-live="polite">Sem spam. Só repertório. Veja a <a href={url("/privacidade/#newsletter")}>Política de Privacidade</a>.</span></form>
       </div>
     </section>
   </main>
 </BaseLayout>
 
 <script>
-  const form = document.querySelector("#newsletter-form");
-  const note = document.querySelector("#newsletter-note");
-  form?.addEventListener("submit", (event) => {
+  import { SUPABASE_KEY, SUPABASE_URL } from "../lib/supabase.js";
+
+  // Inscrição na newsletter (supabase/newsletter.sql): só o e-mail, sem conta nem senha.
+  const form = document.querySelector<HTMLFormElement>("#newsletter-form");
+  const email = document.querySelector<HTMLInputElement>("#newsletter-email");
+  const note = document.querySelector<HTMLElement>("#newsletter-note");
+  const button = form?.querySelector("button");
+  form?.addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (note) note.textContent = "Lista demonstrativa. A integração de e-mail vem na próxima etapa.";
+    if (!email || !note || !button) return;
+    const value = email.value.trim();
+    if (!/^\S+@\S+\.\S+$/.test(value)) {
+      note.textContent = "Confira o e-mail digitado.";
+      return email.focus();
+    }
+    button.disabled = true;
+    note.textContent = "Enviando…";
+    try {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/inscrever`, {
+        method: "POST",
+        headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ p_email: value }),
+      });
+      if (!response.ok) throw new Error(response.statusText);
+      form.reset();
+      note.textContent = "Pronto! Você vai receber as próximas postagens no seu e-mail.";
+    } catch {
+      note.textContent = "Não deu pra inscrever agora. Tenta de novo em instantes.";
+    } finally {
+      button.disabled = false;
+    }
   });
 </script>
