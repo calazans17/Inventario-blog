@@ -46,6 +46,17 @@ export const icons = {
     ".#.....#.",
     "..#####..",
   ],
+  famosos: [
+    "....#....",
+    "...###...",
+    "...###...",
+    "#########",
+    ".#######.",
+    "..#####..",
+    "..#####..",
+    ".###.###.",
+    ".##...##.",
+  ],
   achadinhos: [
     ".....####",
     "....#####",
@@ -140,7 +151,7 @@ export function markSvg(color) {
 
 // Ladrilho do fundo das páginas de leitura: os ícones espalhados, cada um levemente
 // girado, como o "I" da tela de login. Repete sem emenda (nenhum ícone cruza a borda).
-const PATTERN_SEQUENCE = ["games", "coracao", "beleza", "mais", "achadinhos", "pokemon", "musica", "beleza", "pokemon", "games", "musica", "coracao", "mais", "achadinhos", "coracao", "musica"];
+const PATTERN_SEQUENCE = ["games", "coracao", "beleza", "mais", "achadinhos", "pokemon", "famosos", "beleza", "pokemon", "games", "famosos", "coracao", "mais", "achadinhos", "coracao", "famosos"];
 const PATTERN_COLUMNS = 4;
 const PATTERN_CELL = 28;
 export const patternSize = PATTERN_COLUMNS * PATTERN_CELL;

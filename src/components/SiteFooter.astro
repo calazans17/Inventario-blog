@@ -9,7 +9,7 @@ const social = Object.entries(site.social).filter(([, link]) => link);
   <div class="footer-inner">
     <div class="footer-brand">
       <Logo variant="dark" size="md" />
-      <p>Beleza, música, games, pokémon e achadinhos. Mais do que categorias: é o seu universo.</p>
+      <p>Beleza, famosos & internet, games, pokémon e achadinhos. Mais do que categorias: é o seu universo.</p>
     </div>
     <div class="footer-links">
       <div><span class="eyebrow">Assuntos</span>{categories.map((category) => <a href={categoryPath(category)}><PixelIcon name={category.icon} size={14} />{category.name}</a>)}</div>

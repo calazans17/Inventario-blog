@@ -305,7 +305,7 @@ button.button-link { border: 0; cursor: pointer; }
   .footer-inner { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 720px) {
-  .topline-tagline { display: none; }
+  .topline-tagline, .topline-long { display: none; }
   .topline { justify-content: center; font-size: 10px; letter-spacing: .14em; }
   .header-inner { gap: 12px; min-height: 62px; padding-block: 8px; }
   .logo--sm { --logo-size: 20px; }

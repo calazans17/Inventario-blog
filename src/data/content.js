@@ -22,7 +22,7 @@ export const site = {
 // por isso ficam no código. A Redação (/painel) lê esta lista no build.
 export const categories = [
   { slug: "beleza", name: "Beleza", icon: "beleza", description: "Maquiagem, cuidados e os produtos que viram rotina (e assunto)." },
-  { slug: "musica", name: "Música", icon: "musica", description: "Discos, shows e as músicas que marcam fases inteiras da vida." },
+  { slug: "famosos", name: "Famosos & internet", icon: "famosos", description: "Celebridades, criadores, memes e o que está bombando nas redes." },
   { slug: "games", name: "Games", icon: "games", description: "Jogos, mundos e as histórias que a gente vive com um controle na mão." },
   { slug: "pokemon", name: "Pokémon", icon: "pokemon", description: "Cartas, jogos, anime e trinta anos de pokémon na memória coletiva." },
   { slug: "achadinhos", name: "Achadinhos", icon: "achadinhos", description: "Coisas boas, baratas e úteis que a gente achou e quer te contar." },

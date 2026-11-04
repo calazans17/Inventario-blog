@@ -5,7 +5,7 @@ import { site, url } from "../data/content.js";
 export const GET: APIRoute = () => new Response(JSON.stringify({
   name: site.name,
   short_name: "Inventário",
-  description: "Beleza, música, games, pokémon e achadinhos. Mais do que categorias: é o seu universo.",
+  description: "Beleza, famosos & internet, games, pokémon e achadinhos. Mais do que categorias: é o seu universo.",
   lang: "pt-BR",
   start_url: url("/"),
   scope: url("/"),
