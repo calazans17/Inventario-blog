@@ -48,6 +48,7 @@ a.category-label:hover { color: var(--red-dark); }
 .section-link { display: inline-flex; align-items: center; gap: 8px; color: var(--red); white-space: nowrap; }
 .section-link:hover span { transform: translateX(3px); }
 .section-link span { transition: transform .2s; }
+button.button-link { border: 0; cursor: pointer; }
 .button-link { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 0 24px; border-radius: 999px; color: var(--cream); background: var(--red); }
 .button-link:hover { background: var(--red-dark); }
 
@@ -100,6 +101,7 @@ a.category-label:hover { color: var(--red-dark); }
 .hero-read { display: inline-flex; align-items: center; gap: 10px; margin-top: 22px; padding: 12px 22px; border-radius: 999px; color: var(--cream); background: var(--red); }
 .hero-read:hover { background: var(--red-dark); }
 
+.lead-layout--solo { grid-template-columns: minmax(0, 1fr); }
 .lead-rail { align-self: start; padding: 26px 28px 10px; border-radius: var(--radius); background: var(--beige); }
 .rail-heading { display: flex; align-items: center; justify-content: space-between; padding-bottom: 14px; border-bottom: 1px solid var(--line); color: var(--red); }
 .rail-heading .eyebrow { margin: 0; }
@@ -184,7 +186,7 @@ a.category-label:hover { color: var(--red-dark); }
 .legal-body > h2:first-child { margin-top: 0; }
 .legal-topics { list-style: none; padding-left: 0 !important; }
 .legal-topics a { display: inline-flex; align-items: center; gap: 8px; font-weight: 500; }
-.contact-email { font-family: var(--serif); font-size: clamp(28px, 4vw, 40px); }
+.contact-email { font-family: var(--serif); font-size: clamp(22px, 5.5vw, 40px); overflow-wrap: anywhere; }
 .inline-button { padding: 0; border: 0; color: var(--red); background: none; font: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 
 /* Aviso de cookies */
@@ -204,6 +206,7 @@ a.category-label:hover { color: var(--red-dark); }
 
 /* Páginas de arquivo, autor e busca */
 .breadcrumbs { display: flex; flex-wrap: wrap; gap: 10px; padding-top: 28px; color: var(--slate); font-size: 11px; }
+.breadcrumbs a { margin: -10px 0; padding: 10px 0; }
 .breadcrumbs a:hover { color: var(--red); }
 .archive-page { padding-bottom: 88px; }
 .archive-heading { padding: 40px 0 44px; margin-bottom: 40px; border-bottom: 1px solid var(--line); }
@@ -222,6 +225,36 @@ a.category-label:hover { color: var(--red-dark); }
 .not-found h1 { max-width: 16ch; font-size: clamp(40px, 6vw, 72px); line-height: 1.02; }
 .not-found p { margin: 16px 0 28px; color: var(--muted); font-size: 18px; }
 .not-found-links { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 24px; }
+
+/* Fundo das páginas de leitura: os ícones em pixel da marca nas laterais, sumindo
+   antes da coluna de texto para não atrapalhar a leitura. */
+.article-shell, .archive-page { position: relative; isolation: isolate; }
+.article-shell::before, .archive-page::before {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  background: var(--terracotta);
+  opacity: .14;
+  pointer-events: none;
+  -webkit-mask: var(--reading-pattern) 0 0 / 300px 300px repeat, linear-gradient(90deg, #000 calc(50% - 560px), transparent calc(50% - 380px), transparent calc(50% + 380px), #000 calc(50% + 560px));
+  -webkit-mask-composite: source-in;
+  mask: var(--reading-pattern) 0 0 / 300px 300px repeat, linear-gradient(90deg, #000 calc(50% - 560px), transparent calc(50% - 380px), transparent calc(50% + 380px), #000 calc(50% + 560px));
+  mask-composite: intersect;
+}
+/* Em telas estreitas não sobra lateral: o padrão fica só no topo, em volta do título,
+   e some antes do texto começar. */
+@media (max-width: 1080px) {
+  .article-shell::before, .archive-page::before {
+    position: absolute;
+    bottom: auto;
+    height: 460px;
+    -webkit-mask: var(--reading-pattern) 0 0 / 240px 240px repeat, linear-gradient(#000 35%, transparent);
+    -webkit-mask-composite: source-in;
+    mask: var(--reading-pattern) 0 0 / 240px 240px repeat, linear-gradient(#000 35%, transparent);
+    mask-composite: intersect;
+  }
+}
 
 /* Matéria */
 .article-shell { padding-bottom: 88px; }
@@ -296,6 +329,11 @@ a.category-label:hover { color: var(--red-dark); }
   .newsletter-box { grid-template-columns: minmax(0, 1fr); }
   .newsletter-form { grid-template-columns: minmax(0, 1fr); }
   .footer-links { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cookie-consent { right: 10px; bottom: 10px; left: 10px; gap: 12px; padding: 16px 18px; }
+  .cookie-copy strong { font-size: 19px; }
+  .cookie-copy p { font-size: 14px; line-height: 1.45; }
+  .cookie-actions { width: 100%; }
+  .cookie-button { flex: 1; padding: 0 14px; }
   .footer-links > div:first-child { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .footer-links > div:first-child .eyebrow { grid-column: 1 / -1; }
   .archive-heading { padding: 28px 0 32px; margin-bottom: 32px; }

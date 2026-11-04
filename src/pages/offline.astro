@@ -1,0 +1,16 @@
+---
+// Aberta pelo service worker (src/pages/sw.js.ts) quando a pessoa está sem internet
+// e a página pedida não está guardada no aparelho.
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { url } from "../data/content.js";
+---
+
+<BaseLayout title="Sem conexão — Somos Inventário" description="Você está sem internet." noindex={true}>
+  <main id="main-content" class="archive-page container not-found">
+    <img src={url("/marca/vermelho.svg")} alt="" width="97" height="130" />
+    <span class="eyebrow">Sem conexão · modo offline</span>
+    <h1>A internet saiu para dar uma <em>volta</em>.</h1>
+    <p>As matérias que você já abriu continuam disponíveis. Quando a conexão voltar, é só recarregar.</p>
+    <div class="not-found-links"><button type="button" class="button-link" onclick="location.reload()">Tentar de novo</button><a class="section-link" href={url("/")}>Ir para o início <span aria-hidden="true">→</span></a></div>
+  </main>
+</BaseLayout>

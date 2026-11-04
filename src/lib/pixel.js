@@ -137,3 +137,23 @@ export function markPath() {
 export function markSvg(color) {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${markViewBox}" shape-rendering="crispEdges"><path fill="${color}" d="${markPath()}"/></svg>`;
 }
+
+// Ladrilho do fundo das páginas de leitura: os ícones espalhados, cada um levemente
+// girado, como o "I" da tela de login. Repete sem emenda (nenhum ícone cruza a borda).
+const PATTERN_SEQUENCE = ["games", "coracao", "beleza", "mais", "achadinhos", "pokemon", "musica", "beleza", "pokemon", "games", "musica", "coracao", "mais", "achadinhos", "coracao", "musica"];
+const PATTERN_COLUMNS = 4;
+const PATTERN_CELL = 28;
+export const patternSize = PATTERN_COLUMNS * PATTERN_CELL;
+
+export function patternSvg(color) {
+  let shapes = "";
+  PATTERN_SEQUENCE.forEach((name, index) => {
+    const col = index % PATTERN_COLUMNS;
+    const row = Math.floor(index / PATTERN_COLUMNS);
+    const x = col * PATTERN_CELL + (row % 2 ? 15 : 4);
+    const y = row * PATTERN_CELL + 9;
+    const angle = [-6, 4, -2, 7, -4, 2][index % 6];
+    shapes += `<path transform="rotate(${angle} ${x + ICON_SIZE / 2} ${y + ICON_SIZE / 2})" d="${gridToPath(icons[name], x, y)}"/>`;
+  });
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${patternSize} ${patternSize}" width="${patternSize}" height="${patternSize}"><g fill="${color}">${shapes}</g></svg>`;
+}

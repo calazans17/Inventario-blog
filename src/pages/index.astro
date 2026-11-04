@@ -15,16 +15,16 @@ const countFor = (category) => articles.filter((article) => article.category ===
 <BaseLayout>
   <main id="main-content">
     {!lead && <section class="archive-page container"><p class="empty-state">O inventário está sendo montado. As primeiras histórias chegam em breve.</p></section>}
-    {lead && <section class="lead-layout container" aria-label="Destaques">
+    {lead && <section class:list={["lead-layout container", { "lead-layout--solo": !trending.length }]} aria-label="Destaques">
       <div class="lead-main"><ArticleCard article={lead} variant="hero" headingLevel={1} /></div>
-      <aside class="lead-rail" aria-labelledby="rail-title">
+      {trending.length > 0 && <aside class="lead-rail" aria-labelledby="rail-title">
         <div class="rail-heading"><h2 id="rail-title" class="eyebrow">Em alta no inventário</h2><PixelIcon name="coracao" size={16} /></div>
         <ol class="lead-list">
           {trending.map((article, index) => (
             <li><a class="lead-item" href={articlePath(article)}><span class="lead-item-index">{String(index + 1).padStart(2, "0")}</span><span class="lead-item-copy"><span class="category-label"><PixelIcon name={categoryFor(article).icon} size={13} />{categoryFor(article).name}</span><span class="lead-item-title">{article.title}</span><time datetime={article.date}>{shortDate(article.date)}</time></span></a></li>
           ))}
         </ol>
-      </aside>
+      </aside>}
     </section>}
 
     <section class="universe" aria-labelledby="universe-title">
@@ -32,7 +32,7 @@ const countFor = (category) => articles.filter((article) => article.category ===
         <div class="section-heading section-heading--center"><span class="eyebrow">Mais do que categorias</span><h2 id="universe-title">É o seu <em>universo</em>.</h2></div>
         <ul class="universe-grid">
           {categories.map((category) => (
-            <li><a class="universe-tile" href={categoryPath(category)}><PixelIcon name={category.icon} size={54} /><span class="universe-name">{category.name}</span><span class="universe-count">{String(countFor(category)).padStart(2, "0")} histórias</span></a></li>
+            <li><a class="universe-tile" href={categoryPath(category)}><PixelIcon name={category.icon} size={54} /><span class="universe-name">{category.name}</span><span class="universe-count">{String(countFor(category)).padStart(2, "0")} {countFor(category) === 1 ? "história" : "histórias"}</span></a></li>
           ))}
         </ul>
       </div>

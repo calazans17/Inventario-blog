@@ -71,6 +71,16 @@ Login por e-mail e senha (Supabase Auth). Não há cadastro pelo site: só publi
 
 As categorias têm ícone em pixel e ficam no código (`src/data/content.js`); a Redação lê a lista de lá no build.
 
+## App (PWA)
+
+O site pode ser instalado no celular e no computador ("Adicionar à tela inicial"). O manifest fica em `src/pages/manifest.webmanifest.ts`, os ícones em `public/icones/` e o service worker em `src/pages/sw.js.ts`:
+
+- páginas: busca a versão nova primeiro e só usa a cópia guardada sem internet (até 40 páginas); sem cópia, mostra `/offline/`;
+- arquivos do build, imagens e fontes: usa a cópia guardada (até 120 arquivos);
+- `/painel/`, `/entrar/`, `/admin/` e o banco passam direto, sem cache.
+
+O service worker só é registrado no build (`npm run build && npm run preview`), não no `npm run dev`. Cada build gera uma versão nova e apaga o cache da anterior.
+
 ## Identidade visual
 
 - Paleta: `#B23B2F`, `#D25A4A`, `#E59686`, `#EDE7DC` e `#FBF8F2`, variáveis no topo de `src/styles/global.css`.
