@@ -13,7 +13,7 @@ export const site = {
   // Links completos (ex.: "https://instagram.com/somosinventario"). Vazio esconde do rodapé.
   social: { Instagram: "", TikTok: "", YouTube: "" },
   // ID de publicador do Google AdSense ("ca-pub-..."). Vazio = site sem anúncios.
-  adsenseClient: import.meta.env.PUBLIC_ADSENSE_CLIENT || "",
+  adsenseClient: import.meta.env.PUBLIC_ADSENSE_CLIENT || "ca-pub-6597425477518509",
   // Data da última revisão da Política de Privacidade.
   privacyUpdated: "2026-11-04",
 };
