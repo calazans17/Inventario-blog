@@ -1,11 +1,12 @@
 ---
-// Aviso de cookies (LGPD) e carregamento do Google AdSense conforme a escolha.
-// "Aceitar" libera anúncios personalizados; "Só os essenciais" mantém anúncios, mas não personalizados.
+// Aviso de cookies (LGPD), Google Analytics e Google AdSense conforme a escolha.
+// "Aceitar" libera estatísticas (Analytics) e anúncios personalizados; "Só os essenciais"
+// mantém anúncios, mas não personalizados, e o Analytics sem cookies (modo de consentimento).
 // O botão [data-cookie-prefs] (rodapé) reabre o aviso para mudar a escolha.
 import { site, url } from "../data/content.js";
 ---
 
-<div class="cookie-consent" id="cookie-consent" role="dialog" aria-labelledby="cookie-title" aria-describedby="cookie-text" data-adsense={site.adsenseClient} hidden>
+<div class="cookie-consent" id="cookie-consent" role="dialog" aria-labelledby="cookie-title" aria-describedby="cookie-text" data-adsense={site.adsenseClient} data-analytics={site.analyticsId} hidden>
   <div class="cookie-copy">
     <strong id="cookie-title">A gente usa cookies</strong>
     <p id="cookie-text">Alguns são essenciais para o site funcionar. Outros, de parceiros como o Google, servem para mostrar anúncios e medir o que funciona. Você escolhe. Detalhes na <a href={url("/privacidade/#cookies")}>Política de Privacidade</a>.</p>
@@ -20,6 +21,20 @@ import { site, url } from "../data/content.js";
   const KEY = "inventario:cookies";
   const banner = document.querySelector<HTMLElement>("#cookie-consent")!;
   const client = banner.dataset.adsense;
+  const analyticsId = banner.dataset.analytics;
+  const w = window as any;
+
+  // Google Analytics com modo de consentimento: tudo negado até a pessoa escolher.
+  // Não roda local (npm run dev/preview) para não somar as visitas de quem está editando.
+  const local = ["localhost", "127.0.0.1"].includes(location.hostname);
+  w.dataLayer = w.dataLayer || [];
+  function gtag(..._args: unknown[]) { w.dataLayer.push(arguments); }
+  const consent = (choice: string | null) => ({
+    analytics_storage: choice === "todos" ? "granted" : "denied",
+    ad_storage: choice ? "granted" : "denied",
+    ad_user_data: choice === "todos" ? "granted" : "denied",
+    ad_personalization: choice === "todos" ? "granted" : "denied",
+  });
 
   const read = () => {
     try { return localStorage.getItem(KEY); } catch { return null; }
@@ -43,12 +58,22 @@ import { site, url } from "../data/content.js";
     const previous = read();
     try { localStorage.setItem(KEY, choice); } catch { /* storage bloqueado: vale só nesta página */ }
     banner.hidden = true;
+    gtag("consent", "update", consent(choice));
     // Trocar de ideia depois de os anúncios carregarem só vale com a página recarregada.
     if (adsLoaded && previous && previous !== choice) location.reload();
     else loadAds(choice);
   }
 
   const saved = read();
+  if (analyticsId && !local) {
+    gtag("consent", "default", consent(saved));
+    gtag("js", new Date());
+    gtag("config", analyticsId);
+    const tag = document.createElement("script");
+    tag.async = true;
+    tag.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(analyticsId)}`;
+    document.head.append(tag);
+  }
   if (saved) loadAds(saved);
   else banner.hidden = false;
 

@@ -25,6 +25,7 @@ const updated = longDate(`${site.privacyUpdated}T12:00:00-03:00`);
       <ul>
         <li><strong>Dados técnicos de acesso</strong>, como endereço IP, navegador, sistema e página acessada. Eles chegam aos serviços que hospedam e entregam o site (veja a seção 5) e são usados para entregar as páginas e manter a segurança.</li>
         <li><strong>Contagem de visualizações.</strong> Quando você abre uma matéria, somamos uma visita ao total diário daquela matéria. Guardamos só o número, sem nenhum dado que identifique você. Para não contar a mesma pessoa várias vezes no dia, seu navegador anota localmente que a matéria já foi vista hoje.</li>
+        <li><strong>Estatísticas de uso (Google Analytics).</strong> Com o seu consentimento, o Google Analytics registra como o site é usado: páginas vistas, tempo de leitura, rolagem, de onde você veio (busca, rede social, link), tipo de aparelho e região aproximada. Usamos esses números de forma agregada, para saber quais matérias interessam mais. Sem consentimento, o Analytics funciona sem cookies e não guarda nada no seu aparelho.</li>
         <li><strong>Sua escolha sobre cookies</strong>, guardada no seu navegador.</li>
         <li><strong>Publicidade.</strong> Quando houver anúncios do Google AdSense, o Google e seus parceiros podem usar cookies, como descrito na seção 4.</li>
       </ul>
@@ -39,6 +40,7 @@ const updated = longDate(`${site.privacyUpdated}T12:00:00-03:00`);
       <p>Cookies e o armazenamento local do navegador são pequenos registros que o site guarda no seu aparelho. Usamos:</p>
       <ul>
         <li><strong>Essenciais</strong>, sempre ativos: a sua escolha sobre cookies, o controle de "matéria já vista hoje" do contador de visualizações e, para a equipe, a sessão de login da Redação.</li>
+        <li><strong>Estatísticas</strong>, do Google Analytics e só com o seu consentimento ("Aceitar"): cookies que ajudam a contar visitas e entender como o site é usado.</li>
         <li><strong>Publicidade</strong>, de terceiros e só quando houver anúncios: cookies do Google e de seus parceiros para exibir anúncios e medir resultados. Com o seu consentimento ("Aceitar"), os anúncios podem ser personalizados com base nas suas visitas a este e a outros sites. Se você escolhe "Só os essenciais", os anúncios continuam aparecendo, mas não personalizados.</li>
       </ul>
       <p>Você pode mudar sua escolha quando quiser em <button type="button" class="inline-button" data-cookie-prefs>Preferências de cookies</button>, que também fica no rodapé de todas as páginas. Também pode apagar ou bloquear cookies nas configurações do seu navegador.</p>
@@ -56,19 +58,19 @@ const updated = longDate(`${site.privacyUpdated}T12:00:00-03:00`);
       <ul>
         <li><strong>GitHub (GitHub Pages)</strong>: hospedagem das páginas do site.</li>
         <li><strong>Supabase</strong>: banco de dados das matérias, da contagem de visualizações e da lista da newsletter, login da equipe e armazenamento de imagens.</li>
-        <li><strong>Google</strong>: fontes tipográficas (Google Fonts), vídeos incorporados do YouTube em modo de privacidade reforçada, que só grava cookies se você der play, e anúncios (Google AdSense), quando ativos.</li>
+        <li><strong>Google</strong>: fontes tipográficas (Google Fonts), vídeos incorporados do YouTube em modo de privacidade reforçada, que só grava cookies se você der play, estatísticas de uso (Google Analytics) e anúncios (Google AdSense), quando ativos. Veja como o Google usa esses dados em <a href="https://policies.google.com/technologies/partner-sites?hl=pt-BR" target="_blank" rel="noreferrer">policies.google.com/technologies/partner-sites</a>.</li>
       </ul>
       <p>Esses serviços podem guardar dados fora do Brasil, principalmente nos Estados Unidos. A transferência internacional segue o art. 33 da LGPD e as garantias contratuais oferecidas por esses fornecedores.</p>
 
       <h2>6. Por que podemos tratar esses dados (bases legais)</h2>
       <ul>
-        <li><strong>Consentimento</strong> (art. 7º, I): cookies de publicidade personalizada e inscrição na newsletter.</li>
+        <li><strong>Consentimento</strong> (art. 7º, I): cookies de estatística (Google Analytics), cookies de publicidade personalizada e inscrição na newsletter.</li>
         <li><strong>Legítimo interesse</strong> (art. 7º, IX): entregar e proteger o site e contar visualizações de forma agregada, sem identificar ninguém.</li>
         <li><strong>Execução de contrato ou procedimentos relacionados</strong> (art. 7º, V): contas da equipe da Redação.</li>
       </ul>
 
       <h2>7. Por quanto tempo guardamos</h2>
-      <p>A contagem de visualizações é guardada só como números agregados, sem dados pessoais. O e-mail da newsletter fica guardado até você pedir para sair da lista. Os dados da conta da equipe ficam guardados enquanto a conta existir. E-mails de contato ficam guardados pelo tempo necessário para resolver o assunto. Os registros técnicos dos fornecedores seguem os prazos de cada um.</p>
+      <p>A contagem de visualizações é guardada só como números agregados, sem dados pessoais. Os dados do Google Analytics ficam guardados por até 14 meses e depois são apagados pelo Google. O e-mail da newsletter fica guardado até você pedir para sair da lista. Os dados da conta da equipe ficam guardados enquanto a conta existir. E-mails de contato ficam guardados pelo tempo necessário para resolver o assunto. Os registros técnicos dos fornecedores seguem os prazos de cada um.</p>
 
       <h2>8. Seus direitos</h2>
       <p>Pela LGPD (art. 18), você pode pedir: confirmação de que tratamos seus dados; acesso a eles; correção; anonimização, bloqueio ou eliminação do que for desnecessário; portabilidade; informação sobre com quem compartilhamos; e revogação do consentimento. Basta escrever para <a href={`mailto:${site.email}`}>{site.email}</a> com "Privacidade" no assunto. Você também pode reclamar à Autoridade Nacional de Proteção de Dados (<a href="https://www.gov.br/anpd" target="_blank" rel="noreferrer">ANPD</a>).</p>
