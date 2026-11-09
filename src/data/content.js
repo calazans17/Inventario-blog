@@ -17,7 +17,7 @@ export const site = {
   // ID do Google Analytics 4 ("G-..."). Vazio = sem estatísticas do Google.
   analyticsId: import.meta.env.PUBLIC_GA_ID || "G-9559EGTN31",
   // Data da última revisão da Política de Privacidade.
-  privacyUpdated: "2026-11-05",
+  privacyUpdated: "2026-11-09",
 };
 
 // As categorias seguem a identidade visual e cada uma tem seu ícone em pixel,

@@ -2,6 +2,7 @@
 // Aviso de cookies (LGPD), Google Analytics e Google AdSense conforme a escolha.
 // "Aceitar" libera estatísticas (Analytics) e anúncios personalizados; "Só os essenciais"
 // mantém anúncios, mas não personalizados, e o Analytics sem cookies (modo de consentimento).
+// Antes da escolha, os anúncios já aparecem, não personalizados.
 // O botão [data-cookie-prefs] (rodapé) reabre o aviso para mudar a escolha.
 import { site, url } from "../data/content.js";
 ---
@@ -74,8 +75,12 @@ import { site, url } from "../data/content.js";
     tag.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(analyticsId)}`;
     document.head.append(tag);
   }
+  // Anúncio desde a primeira página: não personalizado até a pessoa escolher.
   if (saved) loadAds(saved);
-  else banner.hidden = false;
+  else {
+    banner.hidden = false;
+    loadAds("essenciais");
+  }
 
   banner.addEventListener("click", (event) => {
     const button = (event.target as HTMLElement).closest<HTMLElement>("[data-consent]");

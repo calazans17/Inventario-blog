@@ -3,6 +3,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import ArticleCard from "../components/ArticleCard.astro";
 import PixelIcon from "../components/PixelIcon.astro";
 import Blocks from "../components/Blocks.astro";
+import Newsletter from "../components/Newsletter.astro";
 import { articles, categoryFor, categoryPath, clockTime, formatoLabel, longDate, nota, tagPath, url, articlePath } from "../data/content.js";
 
 export function getStaticPaths() {
@@ -65,6 +66,8 @@ const articleSchema = {
         </div>
       </article>
     </div>
+
+    <Newsletter />
 
     <section class="related-section container" aria-labelledby="related-title">
       <div class="section-heading"><div><span class="eyebrow">Continua no seu inventário</span><h2 id="related-title">Leia <em>também</em></h2></div></div>
